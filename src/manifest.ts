@@ -15,14 +15,14 @@ const manifest: Manifest.WebExtensionManifest = {
     "128": "icon-128.png",
   },
   manifest_version: 3,
-  name: "Better History",
+  name: "Timesheet Trail",
   permissions: ["history"],
   version: pkg.version,
   ...(isFirefox
     ? {
         browser_specific_settings: {
           gecko: {
-            id: "better-history@enrise.com",
+            id: "timesheet-trail@enrise.com",
             strict_min_version: "142.0",
             // Required by AMO for new add-ons: this one sends nothing anywhere.
             data_collection_permissions: { required: ["none"] },

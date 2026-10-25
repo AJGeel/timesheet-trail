@@ -1,6 +1,6 @@
 # Releasing
 
-Better History is submitted to the Chrome Web Store and Firefox Add-ons with one script:
+Timesheet Trail is submitted to the Chrome Web Store and Firefox Add-ons with one script:
 
 ```sh
 bun store:status            # versions live and pending in each store

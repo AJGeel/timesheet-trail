@@ -1,6 +1,6 @@
 {
-  "name": "better-history",
-  "displayName": "Better History",
+  "name": "timesheet-trail",
+  "displayName": "Timesheet Trail",
   "version": "0.1.0",
   "description": "A better browser history search, for time tracking.",
   "author": "Arthur Geel <ageel@enrise.com>",

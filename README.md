@@ -1,4 +1,4 @@
-# Better History
+# Timesheet Trail
 
 A better browser history search for Chrome and Firefox, for time tracking.
 

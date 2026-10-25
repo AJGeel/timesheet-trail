@@ -1,3 +1,3 @@
 export default function Popup() {
-  return <h1>Better History</h1>;
+  return <h1>Timesheet Trail</h1>;
 }
