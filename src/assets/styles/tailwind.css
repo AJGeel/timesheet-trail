@@ -7,9 +7,9 @@
 */
 @layer base {
   :root {
-    --canvas: #eeeef4;
-    --control: #e3e3ec;
-    --hover: #d8d8e3;
+    --canvas: #ffffff;
+    --control: #f3f3f8;
+    --hover: #e8e8f0;
     --fg: #15161c;
     --muted: #5c5f74;
     --faint: #8d90a5;

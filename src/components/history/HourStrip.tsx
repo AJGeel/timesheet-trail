@@ -9,8 +9,8 @@ type Props = {
   counts: number[];
   /** The hour in view; `null` before the day's first hour. */
   active: number | null;
-  /** Scrolls to that hour of the day in view; `null` is the top of the day. */
-  onJump: (hour: number | null) => void;
+  /** Scrolls to that hour of the day in view. */
+  onJump: (hour: number) => void;
 };
 
 const chip =
@@ -18,13 +18,6 @@ const chip =
 
 const HourStrip = ({ counts, active, onJump }: Props) => (
   <div className="flex items-center gap-1">
-    <Button
-      onClick={() => onJump(null)}
-      className={cn(chip, "shrink-0 px-2.5 text-muted")}
-    >
-      Top
-    </Button>
-
     {hours.map((hour) => (
       <Button
         key={hour}

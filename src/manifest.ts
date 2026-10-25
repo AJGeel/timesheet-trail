@@ -42,7 +42,9 @@ const manifest: Manifest.WebExtensionManifest = {
   manifest_version: 3,
   name: "Timesheet Trail",
   // `favicon` is Chrome's local favicon cache; Firefox has no such API.
-  permissions: isFirefox ? ["history"] : ["history", "favicon"],
+  permissions: isFirefox
+    ? ["history", "storage"]
+    : ["history", "favicon", "storage"],
   version: pkg.version,
   ...(isFirefox
     ? {

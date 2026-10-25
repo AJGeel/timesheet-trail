@@ -96,6 +96,182 @@ const sites: Site[] = [
   },
 ];
 
+type Ticket = {
+  key: string;
+  summary: string;
+  /** Used in branch names and page paths. */
+  slug: string;
+  /** Where its code lives. */
+  host: "gitlab" | "github";
+};
+
+/** What the innie is working on; each day draws a few of these. */
+const tickets: Ticket[] = [
+  {
+    key: "MDR-142",
+    summary: "Refine Dranesville queue throughput",
+    slug: "dranesville-queue",
+    host: "gitlab",
+  },
+  {
+    key: "MDR-157",
+    summary: "Scary numbers misclassified in bin 4",
+    slug: "scary-numbers-bin-4",
+    host: "gitlab",
+  },
+  {
+    key: "MDR-163",
+    summary: "Cold Harbor export times out",
+    slug: "cold-harbor-export",
+    host: "gitlab",
+  },
+  {
+    key: "WLN-23",
+    summary: "Wellness session sign-up fails for outies",
+    slug: "wellness-signup",
+    host: "github",
+  },
+  {
+    key: "HBK-31",
+    summary: "Add verse 25 to the Handbook",
+    slug: "handbook-verse-25",
+    host: "github",
+  },
+  {
+    key: "OTC-9",
+    summary: "Paginate the finger trap catalogue",
+    slug: "finger-trap-pagination",
+    host: "github",
+  },
+  {
+    key: "BRK-5",
+    summary: "Break room incident form validation",
+    slug: "incident-form-validation",
+    host: "gitlab",
+  },
+];
+
+type Page = { url: string; title: string };
+
+/**
+ * The pages a ticket's work visits, like real ones: some name the ticket in the
+ * title, some only in the URL, and some not at all (the code, the docs, the CI).
+ * Each has a weight for how often it comes up in a session.
+ */
+const workPages: {
+  weight: number;
+  page: (ticket: Ticket, n: number) => Page;
+}[] = [
+  {
+    weight: 4,
+    page: ({ key, summary }) => ({
+      url: `https://lumon.atlassian.example/browse/${key}`,
+      title: `[${key}] ${summary} - Jira`,
+    }),
+  },
+  {
+    // The key is only in the URL.
+    weight: 2,
+    page: ({ key }) => ({
+      url: `https://lumon.atlassian.example/jira/software/projects/${key.split("-")[0]}/boards/1?selectedIssue=${key}`,
+      title: "Macrodata Refinement board - Jira",
+    }),
+  },
+  {
+    // The key is only in the title.
+    weight: 3,
+    page: ({ key, slug }, n) => ({
+      url: `https://lumon.atlassian.example/wiki/spaces/${key.split("-")[0]}/pages/${100000 + n * 7}/${slug}`,
+      title: `${key} design notes - Macrodata Refinement - Confluence`,
+    }),
+  },
+  {
+    // A page of the team's own, which names no ticket at all.
+    weight: 1,
+    page: (_, n) => ({
+      url: `https://lumon.atlassian.example/wiki/spaces/MDR/pages/${200000 + (n % 4)}/refinement-runbook`,
+      title: "Refinement runbook - Macrodata Refinement - Confluence",
+    }),
+  },
+  {
+    weight: 4,
+    page: ({ key, summary, host }, n) =>
+      host === "gitlab"
+        ? {
+            url: `https://gitlab.lumon.example/mdr/refiner/-/merge_requests/${40 + (n % 30)}`,
+            title: `${key}: ${summary} (!${40 + (n % 30)}) · Merge requests · Lumon / Refiner · GitLab`,
+          }
+        : {
+            url: `https://github.com/lumon-industries/handbook-web/pull/${40 + (n % 30)}`,
+            title: `${key} ${summary} by kier-eagan · Pull Request #${40 + (n % 30)} · lumon-industries/handbook-web`,
+          },
+  },
+  {
+    // A merge request whose title doesn't carry the key.
+    weight: 1,
+    page: ({ host }, n) =>
+      host === "gitlab"
+        ? {
+            url: `https://gitlab.lumon.example/mdr/refiner/-/merge_requests/${70 + (n % 20)}/diffs`,
+            title: `Draft: tidy sorting (!${70 + (n % 20)}) · Changes · Lumon / Refiner · GitLab`,
+          }
+        : {
+            url: `https://github.com/lumon-industries/handbook-web/pull/${70 + (n % 20)}/files`,
+            title: `Tidy sorting by kier-eagan · Pull Request #${70 + (n % 20)} · lumon-industries/handbook-web`,
+          },
+  },
+  {
+    // The branch is in the URL, in lowercase.
+    weight: 3,
+    page: ({ key, slug, host }) =>
+      host === "gitlab"
+        ? {
+            url: `https://gitlab.lumon.example/mdr/refiner/-/blob/feature/${key.toLowerCase()}-${slug}/src/refine.ts`,
+            title: `src/refine.ts · feature/${key.toLowerCase()}-${slug} · Lumon / Refiner · GitLab`,
+          }
+        : {
+            url: `https://github.com/lumon-industries/handbook-web/blob/${key.toLowerCase()}-${slug}/src/verse.tsx`,
+            title: `handbook-web/src/verse.tsx at ${key.toLowerCase()}-${slug} · lumon-industries/handbook-web`,
+          },
+  },
+  {
+    // Code and CI with nothing of the ticket in them.
+    weight: 3,
+    page: ({ host }, n) =>
+      host === "gitlab"
+        ? {
+            url: `https://gitlab.lumon.example/mdr/refiner/-/pipelines/${9000 + n}`,
+            title: `Pipeline #${9000 + n} · Pipelines · Lumon / Refiner · GitLab`,
+          }
+        : {
+            url: `https://github.com/lumon-industries/handbook-web/actions/runs/${5000 + n}`,
+            title: `CI · Run ${5000 + n} · lumon-industries/handbook-web`,
+          },
+  },
+  {
+    weight: 2,
+    page: (_, n) => ({
+      url: `https://stackoverflow.com/questions/${4100000 + n}`,
+      title:
+        "javascript - How to sort numbers by how they make you feel - Stack Overflow",
+    }),
+  },
+  {
+    weight: 2,
+    page: () => ({
+      url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort",
+      title: "Array.prototype.sort() - JavaScript | MDN",
+    }),
+  },
+  {
+    weight: 1,
+    page: () => ({
+      url: "https://www.typescriptlang.org/docs/handbook/2/generics.html",
+      title: "TypeScript: Documentation - Generics",
+    }),
+  },
+];
+
 /** mulberry32: a small seeded PRNG, so the mock history is the same on every reload. */
 const seeded = (seed: number) => () => {
   seed = (seed + 0x6d2b79f5) | 0;
@@ -104,18 +280,87 @@ const seeded = (seed: number) => () => {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 };
 
+/** A visit to one of the everyday sites, which most of the browsing is. */
+const noiseVisit = (random: () => number, time: number): Visit => {
+  const site = sites[Math.floor(random() ** 1.6 * sites.length)];
+  const n = site.ids
+    ? site.ids[0] + Math.floor(random() * (site.ids[1] - site.ids[0]))
+    : 0;
+  const fill = (text: string) => text.replaceAll("{n}", String(n));
+  const url = fill(site.url);
+
+  return { id: `${url}@${time}`, url, title: fill(site.title), time };
+};
+
+const pickWorkPage = (random: () => number) => {
+  const total = workPages.reduce((sum, { weight }) => sum + weight, 0);
+  let roll = random() * total;
+
+  return (workPages.find(({ weight }) => (roll -= weight) < 0) ?? workPages[0])
+    .page;
+};
+
+const minute = 60_000;
+
+/**
+ * Stretches of work on one ticket: a Jira page first, then a random walk over
+ * its pages a few minutes apart, with the odd everyday site slipped in.
+ */
+const workSessions = (
+  random: () => number,
+  day: Date,
+  back: number,
+): Visit[] => {
+  const visits: Visit[] = [];
+  let cursor = 9 * 60 + Math.floor(random() * 40);
+
+  for (let session = 0; cursor < 17 * 60 + 30; session++) {
+    // Tickets run for days: today's three or four are the same ones as yesterday's, shifted.
+    const ticket =
+      tickets[
+        (Math.floor(back / 2) + Math.floor(random() * 4)) % tickets.length
+      ];
+    const length = 20 + Math.floor(random() * 80);
+    const end = cursor + length;
+    const n = Math.floor(random() * 30);
+    let at = cursor;
+
+    const first = workPages[0].page(ticket, n);
+    for (let step = 0; at < end; step++) {
+      const { url, title } =
+        step === 0 ? first : pickWorkPage(random)(ticket, n + step);
+      const time =
+        startOfDay(day).getTime() +
+        at * minute +
+        Math.floor(random() * 50) * 1000;
+      visits.push({ id: `${url}@${time}`, url, title, time });
+
+      if (random() < 0.2) visits.push(noiseVisit(random, time + 30_000));
+
+      at += 1 + Math.floor(random() ** 1.5 * 8);
+    }
+
+    // Lunch, a meeting, or just a pause.
+    cursor = at + 5 + Math.floor(random() * 30);
+    if (cursor > 11 * 60 + 45 && cursor < 12 * 60 + 30) cursor = 12 * 60 + 30;
+  }
+
+  return visits;
+};
+
 const generate = (): Visit[] => {
-  const random = seeded(42);
   const today = startOfDay(new Date());
-  const now = Date.now();
   const visits: Visit[] = [];
 
   for (let back = 0; back < days; back++) {
+    // Each day has its own seed and its kind follows from how far back it is, not
+    // from the date or the time of day: the same day always looks the same, and today is a work day.
+    const random = seeded(42 + back);
     const day = addDays(today, -back);
-    const weekend = [0, 6].includes(day.getDay());
+    const weekend = back % 7 >= 5;
     const count = weekend
       ? 5 + Math.floor(random() * 10)
-      : 45 + Math.floor(random() * 40);
+      : 20 + Math.floor(random() * 20);
 
     for (let i = 0; i < count; i++) {
       // Work happens 8:30-18:00, with a few evening stragglers; weekends are late and light.
@@ -131,17 +376,11 @@ const generate = (): Visit[] => {
         ),
         Math.floor(random() * 60),
       ).getTime();
-      if (time > now) continue;
 
-      const site = sites[Math.floor(random() ** 1.6 * sites.length)];
-      const n = site.ids
-        ? site.ids[0] + Math.floor(random() * (site.ids[1] - site.ids[0]))
-        : 0;
-      const fill = (text: string) => text.replaceAll("{n}", String(n));
-      const url = fill(site.url);
-
-      visits.push({ id: `${url}@${time}`, url, title: fill(site.title), time });
+      visits.push(noiseVisit(random, time));
     }
+
+    if (!weekend) visits.push(...workSessions(random, day, back));
   }
 
   return visits;

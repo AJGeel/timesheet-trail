@@ -13,6 +13,7 @@ import {
 } from "date-fns";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import AboutDialog from "@/src/components/history/AboutDialog";
 import DayFeed, {
   dayAnchor,
   hourAnchor,
@@ -27,6 +28,8 @@ import Input from "@/src/components/ui/Input";
 import Kbd from "@/src/components/ui/Kbd";
 import { useDayVisits } from "@/src/hooks/useDayVisits";
 import { useDebouncedValue } from "@/src/hooks/useDebouncedValue";
+import { useSuggestionEdits } from "@/src/hooks/useSuggestionEdits";
+import { useSuggestionSettings } from "@/src/hooks/useSuggestionSettings";
 import { useVisits } from "@/src/hooks/useVisits";
 
 /** Searching spans all time, so only the newest matches are listed. */
@@ -82,6 +85,15 @@ export default function History() {
   const today = useMemo(() => startOfDay(new Date()), []);
   const searchRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState("");
+  const {
+    settings,
+    update: changeSettings,
+    shown: showSuggestions,
+    toggleShown,
+  } = useSuggestionSettings();
+
+  const { edits: suggestionEdits, setEdit: setSuggestionEdit } =
+    useSuggestionEdits();
 
   // The feed shows `count` days from `feedStart` back; the strip follows the day in view.
   const [feedStart, setFeedStart] = useState(today);
@@ -161,10 +173,10 @@ export default function History() {
     setScrollTarget({ id: dayAnchor(day), instant: !inFeed });
   };
 
-  const jumpToHour = (hour: number | null) => {
+  const jumpToHour = (hour: number) => {
     setActiveHour(hour);
     setScrollTarget({
-      id: hour === null ? dayAnchor(activeDay) : hourAnchor(activeDay, hour),
+      id: hourAnchor(activeDay, hour),
       instant: false,
     });
   };
@@ -183,10 +195,12 @@ export default function History() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-4 px-6 py-5">
-      <header className="flex items-center gap-4">
-        <img src="/icon-128.png" alt="" className="size-6" />
-        <h1 className="text-base font-semibold text-fg">Timesheet Trail</h1>
+    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-4 px-6 py-5">
+      <header className="flex items-center gap-8">
+        <div className="flex items-center gap-1">
+          <img src="/icon-128.png" alt="" className="size-6" />
+          <h1 className="text-base font-bold text-fg">Timesheet Trail</h1>
+        </div>
 
         <div className="flex-1">
           <Input
@@ -219,11 +233,25 @@ export default function History() {
               onSelect={jumpToDay}
               onShift={shiftStrip}
             />
-            <HourStrip
-              counts={hourCounts}
-              active={activeHour}
-              onJump={jumpToHour}
-            />
+            <div className="flex items-center gap-3">
+              <div className="min-w-0 flex-1">
+                <HourStrip
+                  counts={hourCounts}
+                  active={activeHour}
+                  onJump={jumpToHour}
+                />
+              </div>
+
+              <Button
+                variant="secondary"
+                aria-pressed={showSuggestions}
+                icon={<img src="/icon-128.png" alt="" className="size-4" />}
+                onClick={toggleShown}
+                className="h-7 shrink-0"
+              >
+                {showSuggestions ? "Hide suggestions" : "Show suggestions"}
+              </Button>
+            </div>
           </div>
 
           {feedStart.getTime() !== today.getTime() && (
@@ -245,12 +273,19 @@ export default function History() {
               );
               setActiveHour(hour);
             }}
+            showSuggestions={showSuggestions}
+            suggestionSettings={settings}
+            onSuggestionSettings={changeSettings}
+            suggestionEdits={suggestionEdits}
+            onSuggestionEdit={setSuggestionEdit}
             onLoadOlder={() =>
               setCount((c) => Math.min(c + daysPerPage, maxDays))
             }
           />
         </>
       )}
+
+      <AboutDialog />
     </main>
   );
 }
