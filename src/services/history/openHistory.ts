@@ -1,4 +1,4 @@
-import { runtime, tabs } from "webextension-polyfill";
+import { runtime, tabs, windows } from "webextension-polyfill";
 
 export const historyPagePath = "src/pages/history/index.html";
 
@@ -9,6 +9,10 @@ export const openHistory = async () => {
 
   if (existing?.id !== undefined) {
     await tabs.update(existing.id, { active: true });
+    // The tab may be in another window, which stays in the background otherwise.
+    if (existing.windowId !== undefined) {
+      await windows.update(existing.windowId, { focused: true });
+    }
     return;
   }
 

@@ -23,25 +23,31 @@ const Trail = () => (
 
 type Props = {
   title: ReactNode;
-  description: ReactNode;
+  description?: ReactNode;
   /** Placed over the banner, such as a close button. */
   children?: ReactNode;
+  /** Below the title, still on the gradient. */
+  footer?: ReactNode;
 };
 
 /** The logo and name on the brand gradient, as the top of the dialog and the popup. */
-const Banner = ({ title, description, children }: Props) => (
-  <div className="relative flex items-center gap-4 overflow-hidden bg-linear-to-br from-brand via-[#7d4df0] to-[#a58bff] px-6 py-7">
+const Banner = ({ title, description, children, footer }: Props) => (
+  <div className="relative flex flex-col gap-5 overflow-hidden bg-linear-to-br from-brand via-[#7d4df0] to-[#a58bff] px-6 py-7">
     <Trail />
 
-    <img
-      src="/icon-128.png"
-      alt=""
-      className="relative size-16 shrink-0 rounded-2xl bg-white p-2 shadow-lg ring-4 ring-white/25"
-    />
-    <div className="relative flex flex-col gap-0.5 text-white">
-      <div className="text-xl font-semibold tracking-tight">{title}</div>
-      <div className="text-white/80">{description}</div>
+    <div className="relative flex items-center gap-4">
+      <img
+        src="/icon-128.png"
+        alt=""
+        className="size-16 shrink-0 rounded-2xl bg-white p-2 shadow-lg ring-4 ring-white/25"
+      />
+      <div className="flex flex-col gap-0.5 text-white">
+        <div className="text-xl font-semibold tracking-tight">{title}</div>
+        {description && <div className="text-white/80">{description}</div>}
+      </div>
     </div>
+
+    {footer && <div className="relative">{footer}</div>}
 
     {children}
   </div>

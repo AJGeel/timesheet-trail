@@ -11,7 +11,7 @@ import {
   isBefore,
   startOfDay,
 } from "date-fns";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import AboutDialog from "@/src/components/history/AboutDialog";
 import DayFeed, {
@@ -34,8 +34,15 @@ import { useVisits } from "@/src/hooks/useVisits";
 
 /** Searching spans all time, so only the newest matches are listed. */
 const maxSearchResults = 300;
-/** Days added each time the feed reaches its end. */
+/** The days the strip shows. */
 const daysPerPage = 7;
+/**
+ * Days the feed adds at a time, at first and each time it reaches its end: each is
+ * a few hundred rows, so fewer at once keeps the page responsive.
+ */
+const feedBatch = 3;
+/** A jump to a day this close to the end of the feed extends it, rather than starting a new one. */
+const nearbyDays = 14;
 /** How far back the feed goes. */
 const maxDays = 365;
 
@@ -92,12 +99,19 @@ export default function History() {
     toggleShown,
   } = useSuggestionSettings();
 
+  const [dialog, setDialog] = useState<{ open: boolean; section?: "settings" }>(
+    { open: false },
+  );
+  const openSettings = useCallback(
+    () => setDialog({ open: true, section: "settings" }),
+    [],
+  );
   const { edits: suggestionEdits, setEdit: setSuggestionEdit } =
     useSuggestionEdits();
 
   // The feed shows `count` days from `feedStart` back; the strip follows the day in view.
   const [feedStart, setFeedStart] = useState(today);
-  const [count, setCount] = useState(daysPerPage);
+  const [count, setCount] = useState(feedBatch);
   const [activeDay, setActiveDay] = useState(today);
   const [activeHour, setActiveHour] = useState<number | null>(null);
   const [stripNewest, setStripNewest] = useState(today);
@@ -166,8 +180,15 @@ export default function History() {
     const inFeed = days.some((d) => d.getTime() === day.getTime());
 
     if (!inFeed) {
-      setFeedStart(day);
-      setCount(daysPerPage);
+      const behind = differenceInCalendarDays(feedStart, day);
+
+      if (behind > 0 && behind <= nearbyDays) {
+        // A little further back: keep the feed, and add the days up to it.
+        setCount(behind + 1);
+      } else {
+        setFeedStart(day);
+        setCount(feedBatch);
+      }
     }
     setActiveDay(day);
     setScrollTarget({ id: dayAnchor(day), instant: !inFeed });
@@ -182,16 +203,21 @@ export default function History() {
   };
 
   const showNewer = () => {
-    const start = addDays(feedStart, daysPerPage);
+    const start = addDays(feedStart, feedBatch);
     const newStart = isAfter(start, today) ? today : start;
 
     setCount((c) => c + differenceInCalendarDays(newStart, feedStart));
     setFeedStart(newStart);
   };
 
-  const shiftStrip = (shift: number) => {
-    const shifted = addDays(stripNewest, shift);
-    setStripNewest(isAfter(shifted, today) ? today : shifted);
+  const oldestDay = addDays(today, -(maxDays - 1));
+  const canStepBack = isAfter(activeDay, oldestDay);
+  const canStepForward = isBefore(activeDay, today);
+
+  const stepDay = (direction: -1 | 1) => {
+    if (direction === -1 ? canStepBack : canStepForward) {
+      jumpToDay(addDays(activeDay, direction));
+    }
   };
 
   return (
@@ -229,9 +255,10 @@ export default function History() {
             <DayStrip
               selected={activeDay}
               newest={stripNewest}
-              today={today}
               onSelect={jumpToDay}
-              onShift={shiftStrip}
+              onStep={stepDay}
+              canStepBack={canStepBack}
+              canStepForward={canStepForward}
             />
             <div className="flex items-center gap-3">
               <div className="min-w-0 flex-1">
@@ -278,14 +305,21 @@ export default function History() {
             onSuggestionSettings={changeSettings}
             suggestionEdits={suggestionEdits}
             onSuggestionEdit={setSuggestionEdit}
+            onOpenSettings={openSettings}
             onLoadOlder={() =>
-              setCount((c) => Math.min(c + daysPerPage, maxDays))
+              setCount((c) => Math.min(c + feedBatch, maxDays))
             }
           />
         </>
       )}
 
-      <AboutDialog />
+      <AboutDialog
+        open={dialog.open}
+        section={dialog.section}
+        onOpenChange={(open) => setDialog({ open })}
+        settings={settings}
+        onSettings={changeSettings}
+      />
     </main>
   );
 }

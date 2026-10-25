@@ -9,15 +9,25 @@ export type SuggestionSettings = {
   maxDwellMinutes: number;
   /** A slot with less browsing than this is left empty. */
   minActiveMinutes: number;
-  /** Hosts (`www.` stripped) whose visits never count towards a slot. */
-  hiddenHosts: string[];
+  /**
+   * The sites that hold ticket content (Jira, GitLab, ...): a ticket key is only
+   * looked for on these. A site covers its subdomains.
+   */
+  ticketSites: string[];
 };
 
 export const defaultSuggestionSettings: SuggestionSettings = {
   slotMinutes: 15,
   maxDwellMinutes: 10,
   minActiveMinutes: 3,
-  hiddenHosts: [],
+  ticketSites: [
+    "atlassian.net",
+    "atlassian.com",
+    "gitlab.com",
+    "github.com",
+    "bitbucket.org",
+    "linear.app",
+  ],
 };
 
 export type Suggestion = {
@@ -29,7 +39,7 @@ export type Suggestion = {
   end: number;
   /** The ticket key. */
   label: string;
-  /** Visits that fall inside the suggestion, hidden hosts excluded. */
+  /** Visits that start inside the suggestion. */
   visitCount: number;
   /** For a ticket: the hosts of pages that name it, most dwell first. */
   sources: string[];
@@ -64,8 +74,22 @@ export const hostOf = (url: string) => {
   }
 };
 
-const isHidden = (host: string, hidden: string[]) =>
-  hidden.some((entry) => host === entry || host.endsWith(`.${entry}`));
+/** `https://www.Jira.example.com/browse/X` or `jira.example.com` as `jira.example.com`; empty if it isn't a site. */
+export const normalizeSite = (input: string) => {
+  const text = input.trim().toLowerCase();
+  if (!text) return "";
+
+  try {
+    const host = new URL(text.includes("://") ? text : `https://${text}`)
+      .hostname;
+    return host.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+};
+
+const isTicketSite = (host: string, sites: string[]) =>
+  sites.some((site) => host === site || host.endsWith(`.${site}`));
 
 type Weights = Map<string, number>;
 
@@ -135,11 +159,17 @@ export const suggestSlots = (
   const counted: Counted[] = [];
   sorted.forEach((visit, i) => {
     const host = hostOf(visit.url);
-    if (isHidden(host, settings.hiddenHosts)) return;
 
     const next = sorted[i + 1];
     const dwell = Math.min(next ? next.time - visit.time : minute, maxDwell);
-    counted.push({ visit, host, dwell, key: ticketKeyOf(visit) });
+    counted.push({
+      visit,
+      host,
+      dwell,
+      key: isTicketSite(host, settings.ticketSites)
+        ? ticketKeyOf(visit)
+        : undefined,
+    });
   });
   relate(counted, maxDwell);
 

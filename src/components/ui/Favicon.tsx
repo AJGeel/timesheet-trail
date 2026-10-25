@@ -11,11 +11,23 @@ const host = (url: string) => {
   }
 };
 
+/**
+ * What came of loading a site's icon, so the many rows of one site neither flash
+ * the initial again nor ask again for an icon that isn't there.
+ */
+const outcomes = new Map<string, "loaded" | "failed">();
+
 /** A page's favicon; the site's initial shows until it loads, or if it never does. */
 const Favicon = ({ url }: { url: string }) => {
-  const [loaded, setLoaded] = useState(false);
-  const [failed, setFailed] = useState(false);
-  const src = failed ? undefined : faviconUrl(url);
+  const site = host(url);
+  const [outcome, setOutcome] = useState(outcomes.get(site));
+  const loaded = outcome === "loaded";
+  const src = outcome === "failed" ? undefined : faviconUrl(url);
+
+  const settle = (result: "loaded" | "failed") => {
+    outcomes.set(site, result);
+    setOutcome(result);
+  };
 
   return (
     <span
@@ -26,15 +38,15 @@ const Favicon = ({ url }: { url: string }) => {
         loaded ? "bg-white" : "bg-control",
       )}
     >
-      {!loaded && host(url).charAt(0).toUpperCase()}
+      {!loaded && site.charAt(0).toUpperCase()}
       {src && (
         <img
           src={src}
           alt=""
           loading="lazy"
           referrerPolicy="no-referrer"
-          onLoad={() => setLoaded(true)}
-          onError={() => setFailed(true)}
+          onLoad={() => settle("loaded")}
+          onError={() => settle("failed")}
           className={`absolute size-4 object-contain ${loaded ? "" : "opacity-0"}`}
         />
       )}

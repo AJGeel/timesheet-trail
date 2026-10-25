@@ -20,11 +20,15 @@ const manifest: Manifest.WebExtensionManifest = {
     ? { scripts: [pages.background], type: "module" }
     : { service_worker: pages.background, type: "module" },
   commands: {
-    // Firefox reserves Cmd/Ctrl+Y for its own history, so there the shortcut
-    // may need to be set in about:addons. Chrome swaps its history page below.
     "open-history": {
       description: "Open the history",
-      suggested_key: { default: "Ctrl+Y", mac: "Command+Y" },
+      // Chrome's own history shortcut is overridden below, so it keeps Ctrl/Cmd+Y.
+      // Firefox can't override its history page, and Cmd+Y (Ctrl+H elsewhere)
+      // is reserved there. Ctrl+Shift+H on a Mac (the Control key, not Command)
+      // and Alt+Shift+H elsewhere are free in Firefox and the usual Mac apps.
+      suggested_key: isFirefox
+        ? { default: "Alt+Shift+H", mac: "MacCtrl+Shift+H" }
+        : { default: "Ctrl+Y", mac: "Command+Y" },
     },
   },
   ...(isFirefox
@@ -43,8 +47,8 @@ const manifest: Manifest.WebExtensionManifest = {
   name: "Timesheet Trail",
   // `favicon` is Chrome's local favicon cache; Firefox has no such API.
   permissions: isFirefox
-    ? ["history", "storage"]
-    : ["history", "favicon", "storage"],
+    ? ["history", "storage", "contextMenus"]
+    : ["history", "favicon", "storage", "contextMenus"],
   version: pkg.version,
   ...(isFirefox
     ? {

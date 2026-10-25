@@ -7,10 +7,13 @@ import {
   TicketIcon,
   XIcon,
 } from "@phosphor-icons/react";
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
+import SettingsFields from "@/src/components/history/SettingsFields";
 import Banner from "@/src/components/ui/Banner";
+import ShortcutHint from "@/src/components/ui/ShortcutHint";
 import IconButton from "@/src/components/ui/IconButton";
+import type { SuggestionSettings } from "@/src/services/suggestions/suggestSlots";
 
 const steps: { icon: ReactNode; title: string; text: string }[] = [
   {
@@ -23,84 +26,108 @@ const steps: { icon: ReactNode; title: string; text: string }[] = [
     title: "See your day",
     text: "Time slots, matched to tickets.",
   },
-  {
-    icon: <PencilSimpleLineIcon size={20} weight="duotone" />,
-    title: "Fill in your hours",
-    text: "Bummer. Not yet automated. Oh well!",
-  },
 ];
 
-/** A floating help button that opens what the extension is for, in a few lines. */
-const AboutDialog = () => (
-  <Dialog.Root>
-    <Dialog.Trigger
-      render={
-        <IconButton
-          label="About Timesheet Trail"
-          className="fixed right-6 bottom-6 z-10 size-10 rounded-full shadow-md"
-        />
-      }
-    >
-      <QuestionIcon size={20} weight="bold" />
-    </Dialog.Trigger>
+type Props = {
+  open: boolean;
+  /** Scrolls to the settings when opened. */
+  section?: "settings";
+  onOpenChange: (open: boolean) => void;
+  settings: SuggestionSettings;
+  onSettings: (change: Partial<SuggestionSettings>) => void;
+};
 
-    <Dialog.Portal>
-      <Dialog.Backdrop className="fixed inset-0 z-20 bg-black/40 backdrop-blur-sm" />
-      <Dialog.Popup className="fixed top-1/2 left-1/2 z-30 flex max-h-[90vh] w-[min(30rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl bg-canvas text-[13px] shadow-xl outline-none">
-        <Banner
-          title={<Dialog.Title>Timesheet Trail</Dialog.Title>}
-          description={
-            <Dialog.Description>
-              Your browsing, turned into hours.
-            </Dialog.Description>
-          }
-        >
-          <Dialog.Close
-            render={
-              <IconButton
-                label="Close"
-                className="absolute top-3 right-3 size-7 bg-white/15 text-white hover:bg-white/25 hover:text-white"
-              />
+/** A floating help button that opens what the extension is for, in a few lines, and its settings. */
+const AboutDialog = ({
+  open,
+  section,
+  onOpenChange,
+  settings,
+  onSettings,
+}: Props) => {
+  const settingsRef = useRef<HTMLDivElement>(null);
+
+  // The dialog mounts after `open` changes, so wait a frame before scrolling.
+  useEffect(() => {
+    if (!open || section !== "settings") return;
+
+    const frame = requestAnimationFrame(() =>
+      settingsRef.current?.scrollIntoView({ block: "start" }),
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [open, section]);
+
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Trigger
+        render={
+          <IconButton
+            label="About Timesheet Trail"
+            className="fixed right-6 bottom-6 z-10 size-10 rounded-full shadow-md"
+          />
+        }
+      >
+        <QuestionIcon size={20} weight="bold" />
+      </Dialog.Trigger>
+
+      <Dialog.Portal>
+        <Dialog.Backdrop className="fixed inset-0 z-20 bg-black/40 backdrop-blur-sm transition-opacity duration-150 ease-out data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
+        <Dialog.Popup className="fixed top-1/2 left-1/2 z-30 flex max-h-[90vh] w-[min(30rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl bg-canvas text-[13px] shadow-xl outline-none transition-[opacity,scale] duration-150 ease-out data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0 motion-reduce:transition-none">
+          <Banner
+            title={<Dialog.Title>Timesheet Trail</Dialog.Title>}
+            description={
+              <Dialog.Description>
+                Review the pages you browsed and get suggestions on how to track
+                your hours.
+              </Dialog.Description>
+            }
+            footer={
+              <ol className="grid grid-cols-2 gap-2">
+                {steps.map(({ icon, title, text }) => (
+                  <li
+                    key={title}
+                    className="flex items-center gap-2.5 rounded-xl bg-white px-3 py-2 text-fg ring-1 ring-white/20"
+                  >
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                      {icon}
+                    </span>
+                    <span className="flex min-w-0 flex-col leading-tight">
+                      <span className="font-semibold">{title}</span>
+                      <span className="text-xs text-muted">{text}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
             }
           >
-            <XIcon size={14} weight="bold" />
-          </Dialog.Close>
-        </Banner>
+            <Dialog.Close
+              render={
+                <IconButton
+                  label="Close"
+                  className="absolute top-3 right-3 size-7 bg-white/15 text-white hover:bg-white/25 hover:text-white"
+                />
+              }
+            >
+              <XIcon size={14} weight="bold" />
+            </Dialog.Close>
+          </Banner>
 
-        <div className="flex flex-col gap-5 overflow-y-auto p-6">
-          <p className="text-[14px] leading-relaxed text-fg">
-            Nobody likes filling out timesheets. Review the pages you browsed
-            and get suggestions on how to track your hours.
-          </p>
-
-          <ol className="grid grid-cols-3 gap-2">
-            {steps.map(({ icon, title, text }, index) => (
-              <li
-                key={title}
-                className="flex flex-col gap-2 rounded-xl bg-control p-3"
-              >
-                <span className="flex items-center justify-between text-purple">
-                  {icon}
-                  <span className="text-xs font-semibold text-faint">
-                    {index + 1}
-                  </span>
-                </span>
-                <span className="flex flex-col">
-                  <span className="font-semibold text-fg">{title}</span>
-                  <span className="text-xs text-muted">{text}</span>
-                </span>
-              </li>
-            ))}
-          </ol>
-
-          <div className="flex items-center gap-3 rounded-xl border border-dashed border-hover px-4 py-3 text-faint">
-            <SlidersHorizontalIcon size={18} />
-            Settings will live here.
+          <div className="flex flex-col gap-5 overflow-y-auto p-6">
+            <div ref={settingsRef} className="flex scroll-mt-6 flex-col gap-5">
+              <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight text-fg">
+                <SlidersHorizontalIcon size={18} weight="bold" />
+                Settings
+              </h3>
+              <SettingsFields settings={settings} onChange={onSettings} />
+            </div>
+            <div className="-m-6 mt-6 bg-hover/30 p-6">
+              <ShortcutHint />
+            </div>
           </div>
-        </div>
-      </Dialog.Popup>
-    </Dialog.Portal>
-  </Dialog.Root>
-);
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+};
 
 export default AboutDialog;

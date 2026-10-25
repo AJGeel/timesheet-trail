@@ -55,6 +55,14 @@
   --color-brand: #6c3be8;
 }
 
+/* The calendar's days slide in from the side the month came from. */
+@keyframes month-in {
+  from {
+    opacity: 0;
+    translate: var(--from, 0) 0;
+  }
+}
+
 @layer base {
   html {
     color-scheme: light dark;

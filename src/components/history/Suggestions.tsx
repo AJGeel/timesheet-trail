@@ -1,14 +1,13 @@
-import { EyeSlashIcon, TicketIcon, XIcon } from "@phosphor-icons/react";
+import { SlidersHorizontalIcon, TicketIcon } from "@phosphor-icons/react";
 import { format } from "date-fns";
 import type { PointerEvent } from "react";
 
 import type { Edge } from "@/src/services/suggestions/resizeSuggestions";
+import { SlotSelect } from "@/src/components/history/SettingsFields";
 import Button from "@/src/components/ui/Button";
-import IconButton from "@/src/components/ui/IconButton";
 import Panel from "@/src/components/ui/Panel";
 import type { Visit } from "@/src/services/history/types";
 import {
-  hostOf,
   slotRange,
   type Suggestion,
 } from "@/src/services/suggestions/suggestSlots";
@@ -20,8 +19,6 @@ export const duration = (minutes: number) => {
   if (hours === 0) return `${rest}m`;
   return rest === 0 ? `${hours}h` : `${hours}h${String(rest).padStart(2, "0")}`;
 };
-
-const slotOptions = [5, 10, 15, 30, 60];
 
 type CardProps = {
   suggestion: Suggestion;
@@ -98,14 +95,16 @@ type BarProps = {
   onChange: (change: Partial<SuggestionSettings>) => void;
   /** Set when the day's suggestions were resized by hand; goes back to the automatic ones. */
   onReset?: () => void;
+  onOpenSettings: () => void;
 };
 
-/** The slot length and hidden sites, above a day's suggestions. */
+/** The slot length, and the way to the settings, above a day's suggestions. */
 export const SuggestionBar = ({
   settings,
   totalMinutes,
   onChange,
   onReset,
+  onOpenSettings,
 }: BarProps) => (
   <Panel className="flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2">
     <span className="font-medium text-fg">
@@ -124,61 +123,29 @@ export const SuggestionBar = ({
       </Button>
     )}
 
-    <label className="flex items-center gap-2 text-muted">
-      Slot
-      <select
-        value={settings.slotMinutes}
-        onChange={(event) =>
-          onChange({ slotMinutes: Number(event.target.value) })
-        }
-        className="h-7 rounded-lg bg-hover px-2 text-fg outline-none focus-visible:ring-2 focus-visible:ring-blue"
-      >
-        {slotOptions.map((minutes) => (
-          <option key={minutes} value={minutes}>
-            {minutes} min
-          </option>
-        ))}
-      </select>
-    </label>
+    <SlotSelect
+      slotMinutes={settings.slotMinutes}
+      onChange={(slotMinutes) => onChange({ slotMinutes })}
+    />
 
-    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-      <span className="text-muted">Hidden</span>
-      {settings.hiddenHosts.length === 0 && (
-        <span className="text-faint">none: use the eye on a site</span>
-      )}
-      {settings.hiddenHosts.map((host) => (
-        <span
-          key={host}
-          className="inline-flex h-6 items-center gap-1 rounded-md bg-hover pr-1 pl-2 text-fg"
-        >
-          {host}
-          <button
-            type="button"
-            aria-label={`Show ${host} again`}
-            className="flex size-4 items-center justify-center rounded text-muted outline-none hover:text-fg focus-visible:ring-2 focus-visible:ring-blue"
-            onClick={() =>
-              onChange({
-                hiddenHosts: settings.hiddenHosts.filter((h) => h !== host),
-              })
-            }
-          >
-            <XIcon size={10} weight="bold" />
-          </button>
-        </span>
-      ))}
-    </div>
+    <Button
+      variant="ghost"
+      className="ml-auto h-7 px-2"
+      icon={<SlidersHorizontalIcon size={14} weight="bold" />}
+      onClick={onOpenSettings}
+    >
+      Change config
+    </Button>
   </Panel>
 );
 
-/** Stands beside visits that no suggestion covers: no ticket found, or a hidden site. */
+/** Stands beside visits that no suggestion covers: no ticket was found in them. */
 export const EmptySuggestion = ({
   visits,
   slotMinutes,
-  onHideHost,
 }: {
   visits: Visit[];
   slotMinutes: number;
-  onHideHost: (host: string) => void;
 }) => {
   // Visits run newest first; the range is rounded out to whole slots, like the suggestions.
   const { from, to } = slotRange(
@@ -186,29 +153,15 @@ export const EmptySuggestion = ({
     visits[0].time,
     slotMinutes,
   );
-  const hosts = new Map<string, number>();
-  for (const { url } of visits) {
-    const host = hostOf(url);
-    hosts.set(host, (hosts.get(host) ?? 0) + 1);
-  }
-  const [mostVisited] = [...hosts].sort((a, b) => b[1] - a[1])[0];
 
   return (
-    <div className="flex h-full items-start gap-2 rounded-xl border border-dashed border-hover px-3 py-2">
-      <div className="sticky top-36 flex min-w-0 flex-1 flex-col">
+    <div className="flex h-full items-start rounded-xl border border-dashed border-hover px-3 py-2">
+      <div className="sticky top-36 flex min-w-0 flex-col">
         <span className="text-faint">No ticket found</span>
         <span className="text-xs text-faint tabular-nums">
           {format(from, "HH:mm")}–{format(to, "HH:mm")}
         </span>
       </div>
-
-      <IconButton
-        label={`Hide ${mostVisited}`}
-        className="sticky top-36 size-6"
-        onClick={() => onHideHost(mostVisited)}
-      >
-        <EyeSlashIcon size={14} />
-      </IconButton>
     </div>
   );
 };

@@ -2,6 +2,7 @@ import { ClockCounterClockwiseIcon } from "@phosphor-icons/react";
 
 import Banner from "@/src/components/ui/Banner";
 import Button from "@/src/components/ui/Button";
+import ShortcutHint from "@/src/components/ui/ShortcutHint";
 import { openHistory } from "@/src/services/history/openHistory";
 
 export default function Popup() {
@@ -9,15 +10,9 @@ export default function Popup() {
     <div className="flex w-80 flex-col">
       <Banner
         title="Timesheet Trail"
-        description="Your browsing, turned into hours."
       />
 
       <div className="flex flex-col gap-4 p-4">
-        <p className="leading-relaxed text-muted">
-          Your history, laid out by day, with the tickets you worked on
-          suggested for your timesheet.
-        </p>
-
         <Button
           icon={<ClockCounterClockwiseIcon size={16} weight="bold" />}
           onClick={() => {
@@ -26,6 +21,8 @@ export default function Popup() {
         >
           Open history
         </Button>
+
+        <ShortcutHint className="items-center text-center" />
       </div>
     </div>
   );

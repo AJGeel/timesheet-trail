@@ -165,7 +165,7 @@ const workPages: {
   {
     weight: 4,
     page: ({ key, summary }) => ({
-      url: `https://lumon.atlassian.example/browse/${key}`,
+      url: `https://lumon.atlassian.net/browse/${key}`,
       title: `[${key}] ${summary} - Jira`,
     }),
   },
@@ -173,7 +173,7 @@ const workPages: {
     // The key is only in the URL.
     weight: 2,
     page: ({ key }) => ({
-      url: `https://lumon.atlassian.example/jira/software/projects/${key.split("-")[0]}/boards/1?selectedIssue=${key}`,
+      url: `https://lumon.atlassian.net/jira/software/projects/${key.split("-")[0]}/boards/1?selectedIssue=${key}`,
       title: "Macrodata Refinement board - Jira",
     }),
   },
@@ -181,7 +181,7 @@ const workPages: {
     // The key is only in the title.
     weight: 3,
     page: ({ key, slug }, n) => ({
-      url: `https://lumon.atlassian.example/wiki/spaces/${key.split("-")[0]}/pages/${100000 + n * 7}/${slug}`,
+      url: `https://lumon.atlassian.net/wiki/spaces/${key.split("-")[0]}/pages/${100000 + n * 7}/${slug}`,
       title: `${key} design notes - Macrodata Refinement - Confluence`,
     }),
   },
@@ -189,7 +189,7 @@ const workPages: {
     // A page of the team's own, which names no ticket at all.
     weight: 1,
     page: (_, n) => ({
-      url: `https://lumon.atlassian.example/wiki/spaces/MDR/pages/${200000 + (n % 4)}/refinement-runbook`,
+      url: `https://lumon.atlassian.net/wiki/spaces/MDR/pages/${200000 + (n % 4)}/refinement-runbook`,
       title: "Refinement runbook - Macrodata Refinement - Confluence",
     }),
   },
@@ -198,7 +198,7 @@ const workPages: {
     page: ({ key, summary, host }, n) =>
       host === "gitlab"
         ? {
-            url: `https://gitlab.lumon.example/mdr/refiner/-/merge_requests/${40 + (n % 30)}`,
+            url: `https://gitlab.com/lumon-industries/refiner/-/merge_requests/${40 + (n % 30)}`,
             title: `${key}: ${summary} (!${40 + (n % 30)}) · Merge requests · Lumon / Refiner · GitLab`,
           }
         : {
@@ -212,7 +212,7 @@ const workPages: {
     page: ({ host }, n) =>
       host === "gitlab"
         ? {
-            url: `https://gitlab.lumon.example/mdr/refiner/-/merge_requests/${70 + (n % 20)}/diffs`,
+            url: `https://gitlab.com/lumon-industries/refiner/-/merge_requests/${70 + (n % 20)}/diffs`,
             title: `Draft: tidy sorting (!${70 + (n % 20)}) · Changes · Lumon / Refiner · GitLab`,
           }
         : {
@@ -226,7 +226,7 @@ const workPages: {
     page: ({ key, slug, host }) =>
       host === "gitlab"
         ? {
-            url: `https://gitlab.lumon.example/mdr/refiner/-/blob/feature/${key.toLowerCase()}-${slug}/src/refine.ts`,
+            url: `https://gitlab.com/lumon-industries/refiner/-/blob/feature/${key.toLowerCase()}-${slug}/src/refine.ts`,
             title: `src/refine.ts · feature/${key.toLowerCase()}-${slug} · Lumon / Refiner · GitLab`,
           }
         : {
@@ -240,7 +240,7 @@ const workPages: {
     page: ({ host }, n) =>
       host === "gitlab"
         ? {
-            url: `https://gitlab.lumon.example/mdr/refiner/-/pipelines/${9000 + n}`,
+            url: `https://gitlab.com/lumon-industries/refiner/-/pipelines/${9000 + n}`,
             title: `Pipeline #${9000 + n} · Pipelines · Lumon / Refiner · GitLab`,
           }
         : {

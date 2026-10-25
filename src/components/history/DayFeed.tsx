@@ -1,5 +1,12 @@
 import { format, isToday, isYesterday } from "date-fns";
-import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+import {
+  memo,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent,
+} from "react";
 
 import {
   EmptySuggestion,
@@ -65,6 +72,7 @@ type DayVisitsProps = {
   /** The suggestions as the user resized them, if they did. */
   edited?: Suggestion[];
   onEdit: (day: number, suggestions?: Suggestion[]) => void;
+  onOpenSettings: () => void;
 };
 
 /** The time of the visit row nearest to a vertical position, within the visits' rows. */
@@ -95,22 +103,18 @@ const DayVisits = ({
   onSettings,
   edited,
   onEdit,
+  onOpenSettings,
 }: DayVisitsProps) => {
   const container = useRef<HTMLDivElement>(null);
   // The suggestions while an edge is being dragged, before they are kept.
   const [draft, setDraft] = useState<Suggestion[]>();
 
   const automatic = useMemo(
-    () => (suggesting ? suggestSlots(visits, settings) : []),
-    [suggesting, visits, settings],
+    () => suggestSlots(visits, settings),
+    [visits, settings],
   );
   const kept = edited ?? automatic;
   const suggestions = draft ?? kept;
-
-  if (!suggesting) return <VisitList groups={groups} />;
-
-  const hideHost = (host: string) =>
-    onSettings({ hiddenHosts: [...settings.hiddenHosts, host] });
 
   const startResize = (
     id: string,
@@ -177,20 +181,31 @@ const DayVisits = ({
   );
 
   return (
-    <div ref={container} className="flex flex-col gap-3">
-      <SuggestionBar
-        settings={settings}
-        totalMinutes={totalMinutes}
-        onChange={onSettings}
-        onReset={edited && (() => onEdit(day))}
-      />
+    <div ref={container} className="flex flex-col">
+      {/* Collapses to nothing, gap included, when the suggestions are hidden. */}
+      <div
+        inert={!suggesting}
+        className={`grid transition-[grid-template-rows,opacity] duration-150 ease-out motion-reduce:transition-none ${suggesting ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="pb-3">
+            <SuggestionBar
+              settings={settings}
+              totalMinutes={totalMinutes}
+              onChange={onSettings}
+              onReset={edited && (() => onEdit(day))}
+              onOpenSettings={onOpenSettings}
+            />
+          </div>
+        </div>
+      </div>
       <VisitList
         groups={groups}
+        asidesVisible={suggesting}
         gap={(gapVisits) => (
           <EmptySuggestion
             visits={gapVisits}
             slotMinutes={settings.slotMinutes}
-            onHideHost={hideHost}
           />
         )}
         asides={suggestions.map((suggestion) => ({
@@ -214,6 +229,72 @@ const DayVisits = ({
   );
 };
 
+type DaySectionProps = {
+  /** The day's start, epoch ms. */
+  dayKey: number;
+  /** `undefined` while the day is still loading. */
+  visits: Visit[] | undefined;
+  showSuggestions: boolean;
+  settings: SuggestionSettings;
+  onSettings: (change: Partial<SuggestionSettings>) => void;
+  edited?: Suggestion[];
+  onEdit: (day: number, suggestions?: Suggestion[]) => void;
+  onOpenSettings: () => void;
+};
+
+/**
+ * One day of the feed. Its props are all stable between renders unless this day
+ * changed, so with `memo` a day loading, or the day in view changing, leaves the others alone.
+ */
+const DaySection = memo(
+  ({
+    dayKey,
+    visits,
+    showSuggestions,
+    settings,
+    onSettings,
+    edited,
+    onEdit,
+    onOpenSettings,
+  }: DaySectionProps) => {
+    const day = useMemo(() => new Date(dayKey), [dayKey]);
+    const groups = useMemo(
+      () => visits && hourGroups(day, visits),
+      [day, visits],
+    );
+
+    return (
+      <div className="flex flex-col gap-3">
+        <h2
+          id={dayAnchor(day)}
+          data-day={dayKey}
+          className="scroll-mt-32 text-sm font-semibold text-fg"
+        >
+          {dayLabel(day)}
+        </h2>
+
+        {!visits || !groups ? (
+          <div className="h-24 animate-pulse rounded-xl bg-control" />
+        ) : groups.length === 0 ? (
+          <p className="px-3 text-faint">Nothing visited.</p>
+        ) : (
+          <DayVisits
+            day={dayKey}
+            visits={visits}
+            groups={groups}
+            suggesting={showSuggestions}
+            settings={settings}
+            onSettings={onSettings}
+            edited={edited}
+            onEdit={onEdit}
+            onOpenSettings={onOpenSettings}
+          />
+        )}
+      </div>
+    );
+  },
+);
+
 type Props = {
   /** Newest day first. */
   days: Date[];
@@ -229,6 +310,7 @@ type Props = {
   /** Days (start, epoch ms) whose suggestions were resized by hand. */
   suggestionEdits: SuggestionEdits;
   onSuggestionEdit: (day: number, suggestions?: Suggestion[]) => void;
+  onOpenSettings: () => void;
 };
 
 /** Consecutive days, each with its visits by hour, that load older days when scrolled to the end. */
@@ -242,6 +324,7 @@ const DayFeed = ({
   onSuggestionSettings,
   suggestionEdits,
   onSuggestionEdit,
+  onOpenSettings,
 }: Props) => {
   const endRef = useRef<HTMLDivElement>(null);
   const callbacks = useRef({ onActive, onLoadOlder });
@@ -302,44 +385,20 @@ const DayFeed = ({
     return () => observer.disconnect();
   }, [days, byDay]);
 
-  const sections = useMemo(
-    () =>
-      days.map((day) => {
-        const visits = byDay.get(day.getTime());
-        return { day, visits, groups: visits && hourGroups(day, visits) };
-      }),
-    [days, byDay],
-  );
-
   return (
     <div className="flex flex-col gap-8">
-      {sections.map(({ day, visits, groups }) => (
-        <div key={day.getTime()} className="flex flex-col gap-3">
-          <h2
-            id={dayAnchor(day)}
-            data-day={day.getTime()}
-            className="scroll-mt-32 text-sm font-semibold text-fg"
-          >
-            {dayLabel(day)}
-          </h2>
-
-          {!groups ? (
-            <div className="h-24 animate-pulse rounded-xl bg-control" />
-          ) : groups.length === 0 ? (
-            <p className="px-3 text-faint">Nothing visited.</p>
-          ) : (
-            <DayVisits
-              day={day.getTime()}
-              visits={visits!}
-              groups={groups}
-              suggesting={showSuggestions}
-              settings={suggestionSettings}
-              onSettings={onSuggestionSettings}
-              edited={suggestionEdits[day.getTime()]}
-              onEdit={onSuggestionEdit}
-            />
-          )}
-        </div>
+      {days.map((day) => (
+        <DaySection
+          key={day.getTime()}
+          dayKey={day.getTime()}
+          visits={byDay.get(day.getTime())}
+          showSuggestions={showSuggestions}
+          settings={suggestionSettings}
+          onSettings={onSuggestionSettings}
+          edited={suggestionEdits[day.getTime()]}
+          onEdit={onSuggestionEdit}
+          onOpenSettings={onOpenSettings}
+        />
       ))}
 
       <div ref={endRef} className="h-px" />

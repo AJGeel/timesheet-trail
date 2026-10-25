@@ -3,9 +3,22 @@ import { describe, expect, test } from "bun:test";
 import type { Visit } from "@/src/services/history/types";
 import {
   defaultSuggestionSettings,
+  normalizeSite,
   slotRange,
-  suggestSlots,
+  suggestSlots as suggest,
 } from "./suggestSlots";
+
+const ticketSites = [
+  "jira.example",
+  "x.example",
+  "atlassian.net",
+  "gitlab.com",
+  "github.com",
+  "wiki.example",
+  "example.com",
+];
+const suggestSlots = (visits: Visit[], sites = ticketSites) =>
+  suggest(visits, { ...defaultSuggestionSettings, ticketSites: sites });
 
 const day = new Date(2026, 0, 5).getTime();
 const at = (h: number, m: number) => day + (h * 60 + m) * 60_000;
@@ -103,18 +116,39 @@ describe("suggestSlots", () => {
     expect(result[0].end - result[0].start).toBe(15 * 60_000);
   });
 
-  test("hidden hosts don't count", () => {
-    const visits = [visit(9, 0, "Video", "https://www.youtube.com/watch")];
+  test("keys are only looked for on the ticket sites, and their subdomains", () => {
+    const visits = [
+      visit(9, 0, "REF-1 Fix", "https://jira.example/browse/REF-1"),
+      visit(9, 10, "end", "https://end.example/"),
+      visit(9, 20, "end", "https://end.example/"),
+    ];
 
+    expect(suggestSlots(visits, ["jira.example"])[0]?.label).toBe("REF-1");
+    expect(suggestSlots(visits, ["other.example"])).toEqual([]);
+    expect(suggestSlots(visits, [])).toEqual([]);
     expect(
-      suggestSlots(visits, {
-        ...defaultSuggestionSettings,
-        hiddenHosts: ["youtube.com"],
-      }),
-    ).toEqual([]);
+      suggestSlots(
+        [
+          visit(9, 0, "REF-1 Fix", "https://team.jira.example/browse/REF-1"),
+          ...visits.slice(1),
+        ],
+        ["jira.example"],
+      )[0]?.label,
+    ).toBe("REF-1");
   });
 
   test("brief browsing below the minimum is dropped", () => {
     expect(suggestSlots([visit(9, 0, "a", "https://a.example/")])).toEqual([]);
+  });
+});
+
+describe("normalizeSite", () => {
+  test("reduces what the user typed to a host", () => {
+    expect(normalizeSite("https://www.Jira.Example.com/browse/X-1")).toBe(
+      "jira.example.com",
+    );
+    expect(normalizeSite("  gitlab.com ")).toBe("gitlab.com");
+    expect(normalizeSite("")).toBe("");
+    expect(normalizeSite("not a site")).toBe("");
   });
 });

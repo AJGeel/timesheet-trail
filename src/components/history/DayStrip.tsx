@@ -1,14 +1,7 @@
 import { Toggle } from "@base-ui/react/toggle";
 import { ToggleGroup } from "@base-ui/react/toggle-group";
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
-import {
-  addDays,
-  format,
-  isAfter,
-  isSameDay,
-  isToday,
-  isYesterday,
-} from "date-fns";
+import { addDays, format, isSameDay, isToday, isYesterday } from "date-fns";
 
 import IconButton from "@/src/components/ui/IconButton";
 import { cn } from "@/src/utils";
@@ -19,9 +12,11 @@ type Props = {
   selected: Date;
   /** The newest day in the strip. */
   newest: Date;
-  today: Date;
   onSelect: (day: Date) => void;
-  onShift: (days: number) => void;
+  /** Selects the day before (`-1`) or after (`1`) the selected one. */
+  onStep: (direction: -1 | 1) => void;
+  canStepBack: boolean;
+  canStepForward: boolean;
 };
 
 const label = (day: Date) => {
@@ -30,15 +25,22 @@ const label = (day: Date) => {
   return format(day, "EEEE");
 };
 
-const DayStrip = ({ selected, newest, today, onSelect, onShift }: Props) => {
+const DayStrip = ({
+  selected,
+  newest,
+  onSelect,
+  onStep,
+  canStepBack,
+  canStepForward,
+}: Props) => {
   const days = Array.from({ length: shownDays }, (_, i) => addDays(newest, -i));
 
   return (
     <div className="flex items-center gap-3">
       <IconButton
-        label="Newer days"
-        disabled={!isAfter(today, newest)}
-        onClick={() => onShift(shownDays)}
+        label="Next day"
+        disabled={!canStepForward}
+        onClick={() => onStep(1)}
       >
         <CaretLeftIcon size={18} weight="bold" />
       </IconButton>
@@ -78,7 +80,11 @@ const DayStrip = ({ selected, newest, today, onSelect, onShift }: Props) => {
         ))}
       </ToggleGroup>
 
-      <IconButton label="Older days" onClick={() => onShift(-shownDays)}>
+      <IconButton
+        label="Previous day"
+        disabled={!canStepBack}
+        onClick={() => onStep(-1)}
+      >
         <CaretRightIcon size={18} weight="bold" />
       </IconButton>
     </div>

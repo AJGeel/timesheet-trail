@@ -16,7 +16,7 @@ import {
   startOfMonth,
   startOfWeek,
 } from "date-fns";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 
 import IconButton from "@/src/components/ui/IconButton";
 import { cn } from "@/src/utils";
@@ -38,6 +38,13 @@ const weekdays = eachDayOfInterval({
 const DatePicker = ({ value, max, onChange }: Props) => {
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState(startOfMonth(value));
+  // Which way the month last changed, for the grid to slide in from that side.
+  const [direction, setDirection] = useState<1 | -1>(1);
+
+  const changeMonth = (by: 1 | -1) => {
+    setDirection(by);
+    setMonth(addMonths(month, by));
+  };
 
   const days = eachDayOfInterval({
     start: startOfWeek(month, weekOptions),
@@ -65,12 +72,12 @@ const DatePicker = ({ value, max, onChange }: Props) => {
           sideOffset={6}
           className="z-50"
         >
-          <Popover.Popup className="w-64 rounded-xl bg-control p-3 text-fg shadow-2xl shadow-black/25 outline-none">
+          <Popover.Popup className="w-64 origin-top-right rounded-xl bg-control p-3 text-fg shadow-2xl shadow-black/25 outline-none transition-[opacity,scale,translate] duration-150 ease-out data-ending-style:-translate-y-1 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:-translate-y-1 data-starting-style:scale-95 data-starting-style:opacity-0 motion-reduce:transition-none">
             <div className="mb-2 flex items-center justify-between">
               <IconButton
                 label="Previous month"
                 className="size-7 bg-transparent"
-                onClick={() => setMonth(addMonths(month, -1))}
+                onClick={() => changeMonth(-1)}
               >
                 <CaretLeftIcon size={14} weight="bold" />
               </IconButton>
@@ -79,13 +86,17 @@ const DatePicker = ({ value, max, onChange }: Props) => {
                 label="Next month"
                 className="size-7 bg-transparent"
                 disabled={isAfter(startOfMonth(addMonths(month, 1)), max)}
-                onClick={() => setMonth(addMonths(month, 1))}
+                onClick={() => changeMonth(1)}
               >
                 <CaretRightIcon size={14} weight="bold" />
               </IconButton>
             </div>
 
-            <div className="grid grid-cols-7 gap-0.5 text-center">
+            <div
+              key={month.getTime()}
+              style={{ "--from": `${direction * 16}px` } as CSSProperties}
+              className="grid animate-[month-in_150ms_ease-out] grid-cols-7 gap-0.5 text-center motion-reduce:animate-none"
+            >
               {weekdays.map((weekday) => (
                 <span key={weekday} className="py-1 text-xs text-faint">
                   {weekday}

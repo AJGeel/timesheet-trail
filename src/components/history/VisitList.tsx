@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import { Fragment, type CSSProperties, type ReactNode } from "react";
 
 import Favicon from "@/src/components/ui/Favicon";
+import { cn } from "@/src/utils";
 import type { Visit } from "@/src/services/history/types";
 
 export type VisitGroup = {
@@ -23,6 +24,14 @@ export type VisitAside = {
 /** The URL without its scheme and `www.`, as it reads best in a list. */
 const readable = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "");
 
+/** Fades and slides the asides in and out; quick, and none for those who ask for less motion. */
+const asideMotion = (visible: boolean) =>
+  cn(
+    "transition-[opacity,translate] duration-150 ease-out motion-reduce:transition-none",
+    // Clipped only when hidden: clipping would cut off the resize handles of a shown card.
+    !visible && "pointer-events-none translate-x-2 overflow-clip opacity-0",
+  );
+
 type Placed = { aside: VisitAside; first: number; last: number };
 
 /**
@@ -38,11 +47,12 @@ const place = (asides: VisitAside[], rows: Map<Visit, number>) => {
     const inside = entries.filter(
       ([visit]) => visit.time >= aside.start && visit.time < aside.end,
     );
-    const nearest = [...entries].sort(
-      (a, b) =>
-        Math.abs(a[0].time - aside.start) - Math.abs(b[0].time - aside.start),
-    )[0];
-    const used = inside.length > 0 ? inside : nearest ? [nearest] : [];
+    const nearest = () =>
+      [...entries].sort(
+        (a, b) =>
+          Math.abs(a[0].time - aside.start) - Math.abs(b[0].time - aside.start),
+      )[0];
+    const used = inside.length > 0 ? inside : [nearest()].filter(Boolean);
     if (used.length === 0) continue;
 
     const first = Math.min(...used.map(([, row]) => row));
@@ -63,6 +73,8 @@ type Props = {
   asides?: VisitAside[];
   /** Shown beside each stretch of visits that no aside covers. */
   gap?: (visits: Visit[]) => ReactNode;
+  /** Whether the asides are shown; hidden, their column closes and the visits take the width. */
+  asidesVisible?: boolean;
 };
 
 type Run = { first: number; last: number; visits: Visit[] };
@@ -89,7 +101,7 @@ const gaps = (rows: Map<Visit, number>, placed: Placed[]) => {
   return runs;
 };
 
-const VisitList = ({ groups, asides, gap }: Props) => {
+const VisitList = ({ groups, asides, gap, asidesVisible = true }: Props) => {
   // One grid row per heading and per visit, so an aside can span the rows it covers.
   const rows = new Map<Visit, number>();
   let row = 0;
@@ -100,13 +112,20 @@ const VisitList = ({ groups, asides, gap }: Props) => {
 
   const placed = asides ? place(asides, rows) : [];
   const runs = asides && gap ? gaps(rows, placed) : [];
-  const style: CSSProperties = {
-    gridTemplateColumns: asides ? "minmax(0, 1fr) 17rem" : "minmax(0, 1fr)",
-  };
+  // Both layouts have two tracks, so the width can animate between them.
+  const style: CSSProperties = asides
+    ? {
+        gridTemplateColumns: `minmax(0, 1fr) ${asidesVisible ? "17rem" : "0rem"}`,
+        columnGap: asidesVisible ? "1rem" : "0rem",
+      }
+    : { gridTemplateColumns: "minmax(0, 1fr)" };
 
   row = 0;
   return (
-    <div className="grid gap-x-4" style={style}>
+    <div
+      className="grid transition-[grid-template-columns,column-gap] duration-150 ease-out motion-reduce:transition-none"
+      style={style}
+    >
       {groups.map(({ key, label, visits, anchor }, index) => (
         <Fragment key={key}>
           <h3
@@ -144,7 +163,8 @@ const VisitList = ({ groups, asides, gap }: Props) => {
         <div
           key={aside.key}
           style={{ gridColumn: 2, gridRow: `${first} / ${last + 1}` }}
-          className="py-0.5"
+          className={cn("py-0.5", asideMotion(asidesVisible))}
+          inert={!asidesVisible}
         >
           {aside.content}
         </div>
@@ -154,7 +174,8 @@ const VisitList = ({ groups, asides, gap }: Props) => {
         <div
           key={`gap-${first}`}
           style={{ gridColumn: 2, gridRow: `${first} / ${last + 1}` }}
-          className="py-0.5"
+          className={cn("py-0.5", asideMotion(asidesVisible))}
+          inert={!asidesVisible}
         >
           {gap?.(visits)}
         </div>
