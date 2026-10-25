@@ -1,3 +1,5 @@
 import { defineConfig } from "@ajgeel/ext-store";
 
-export default defineConfig({ name: "Timesheet Trail" });
+import { screenshots } from "./dev/screenshots/config";
+
+export default defineConfig({ name: "Timesheet Trail", screenshots });

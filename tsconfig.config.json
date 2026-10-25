@@ -9,5 +9,5 @@
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["ext-store.config.ts"]
+  "include": ["ext-store.config.ts", "dev"]
 }

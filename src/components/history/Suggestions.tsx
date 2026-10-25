@@ -175,19 +175,20 @@ export const SuggestionBar = ({
       </Button>
     )}
 
-    <SlotSelect
-      slotMinutes={settings.slotMinutes}
-      onChange={(slotMinutes) => onChange({ slotMinutes })}
-    />
-
-    <Button
-      variant="ghost"
-      className="ml-auto h-7 px-2"
-      icon={<SlidersHorizontalIcon size={14} weight="bold" />}
-      onClick={onOpenSettings}
-    >
-      Change settings
-    </Button>
+    <div className="flex items-center ml-auto gap gap-6">
+      <SlotSelect
+        slotMinutes={settings.slotMinutes}
+        onChange={(slotMinutes) => onChange({ slotMinutes })}
+      />
+      <Button
+        variant="ghost"
+        className="ml-auto h-7 px-2"
+        icon={<SlidersHorizontalIcon size={14} weight="bold" />}
+        onClick={onOpenSettings}
+      >
+        Change settings
+      </Button>
+    </div>
   </Panel>
 );
 
@@ -212,6 +213,7 @@ export const EmptySuggestion = ({
         <span className="text-faint">No ticket found</span>
         <span className="text-xs text-faint tabular-nums">
           {format(from, "HH:mm")}–{format(to, "HH:mm")}
+          <span className="ml-2">{duration((to - from) / 60_000)}</span>
         </span>
       </div>
     </div>
