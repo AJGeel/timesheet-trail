@@ -1,0 +1,6 @@
+[install]
+# Only install package versions published at least 14 days ago, so a freshly
+# compromised release doesn't land here before it's caught.
+minimumReleaseAge = 1209600
+# Our own package, trusted publishing with provenance: no need to wait.
+minimumReleaseAgeExcludes = ["@ajgeel/ext-store"]
