@@ -1,0 +1,88 @@
+import { Toggle } from "@base-ui/react/toggle";
+import { ToggleGroup } from "@base-ui/react/toggle-group";
+import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
+import {
+  addDays,
+  format,
+  isAfter,
+  isSameDay,
+  isToday,
+  isYesterday,
+} from "date-fns";
+
+import IconButton from "@/src/components/ui/IconButton";
+import { cn } from "@/src/utils";
+
+const shownDays = 7;
+
+type Props = {
+  selected: Date;
+  /** The newest day in the strip. */
+  newest: Date;
+  today: Date;
+  onSelect: (day: Date) => void;
+  onShift: (days: number) => void;
+};
+
+const label = (day: Date) => {
+  if (isToday(day)) return "Today";
+  if (isYesterday(day)) return "Yesterday";
+  return format(day, "EEEE");
+};
+
+const DayStrip = ({ selected, newest, today, onSelect, onShift }: Props) => {
+  const days = Array.from({ length: shownDays }, (_, i) => addDays(newest, -i));
+
+  return (
+    <div className="flex items-center gap-3">
+      <IconButton
+        label="Newer days"
+        disabled={!isAfter(today, newest)}
+        onClick={() => onShift(shownDays)}
+      >
+        <CaretLeftIcon size={18} weight="bold" />
+      </IconButton>
+
+      <ToggleGroup
+        value={[selected.toISOString()]}
+        onValueChange={([next]) => next && onSelect(new Date(next))}
+        className="grid flex-1 grid-cols-7 gap-1.5"
+      >
+        {days.map((day) => (
+          <Toggle
+            key={day.toISOString()}
+            value={day.toISOString()}
+            aria-label={format(day, "EEEE d MMMM")}
+            className={cn(
+              "flex flex-col items-center rounded-lg bg-control px-2 py-1.5 leading-tight outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue",
+              "hover:bg-hover data-pressed:bg-purple/15",
+            )}
+          >
+            <span
+              className={cn(
+                "font-medium",
+                isSameDay(day, selected) ? "text-purple" : "text-fg",
+              )}
+            >
+              {label(day)}
+            </span>
+            <span
+              className={cn(
+                "text-xs",
+                isSameDay(day, selected) ? "text-purple" : "text-faint",
+              )}
+            >
+              {format(day, "MMM d")}
+            </span>
+          </Toggle>
+        ))}
+      </ToggleGroup>
+
+      <IconButton label="Older days" onClick={() => onShift(-shownDays)}>
+        <CaretRightIcon size={18} weight="bold" />
+      </IconButton>
+    </div>
+  );
+};
+
+export default DayStrip;

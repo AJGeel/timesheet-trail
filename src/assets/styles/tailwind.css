@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+/*
+  Cool purple-grays carry the contrast, with no borders: one page colour, then
+  controls a step off it, then hover. The brand colours from public/timesheet-trail.png are used
+  sparingly: purple for what's selected, blue for focus and links, amber for time.
+*/
+@layer base {
+  :root {
+    --canvas: #eeeef4;
+    --control: #e3e3ec;
+    --hover: #d8d8e3;
+    --fg: #15161c;
+    --muted: #5c5f74;
+    --faint: #8d90a5;
+    --purple: #6c3be8;
+    --blue: #1f5fe0;
+    --amber: #b06a00;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --canvas: #181a23;
+      --control: #23252f;
+      --hover: #2f313d;
+      --fg: #e8e9ee;
+      --muted: #9194a8;
+      --faint: #6b6e83;
+      --purple: #a58bff;
+      --blue: #6b9bff;
+      --amber: #f2b24a;
+    }
+  }
+}
+
+@theme inline {
+  --font-sans:
+    ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui,
+    sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --color-canvas: var(--canvas);
+  --color-control: var(--control);
+  --color-hover: var(--hover);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-purple: var(--purple);
+  --color-blue: var(--blue);
+  --color-amber: var(--amber);
+}
+
+@theme {
+  /* The brand purple as a fill, which holds white text in both themes. */
+  --color-brand: #6c3be8;
+}
+
+@layer base {
+  html {
+    color-scheme: light dark;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--color-canvas);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  input::placeholder {
+    color: var(--color-faint);
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-blue) 30%, transparent);
+  }
+}

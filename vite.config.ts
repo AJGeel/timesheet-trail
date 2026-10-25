@@ -1,5 +1,6 @@
 import { resolve } from "path";
 
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react-swc";
 import { defineConfig, type PluginOption } from "vite";
 
@@ -27,10 +28,18 @@ const emitManifest = (): PluginOption => ({
 });
 
 export default defineConfig({
+  define: {
+    __MOCK_HISTORY__: JSON.stringify(process.env.__DEV__ === "true"),
+    __CHROME_FAVICONS__: JSON.stringify(
+      process.env.BUILD_TARGET !== buildTargets.firefox,
+    ),
+  },
   build: {
     outDir,
     rollupOptions: {
       input: {
+        background: resolve(root, "pages", "background", "index.ts"),
+        history: resolve(root, "pages", "history", "index.html"),
         popup: resolve(root, "pages", "popup", "index.html"),
       },
       output: {
@@ -39,7 +48,7 @@ export default defineConfig({
     },
     sourcemap: process.env.__DEV__ === "true",
   },
-  plugins: [react(), emitManifest()],
+  plugins: [react(), tailwindcss(), emitManifest()],
   resolve: {
     alias: { "@/src": root },
   },
