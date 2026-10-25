@@ -22,7 +22,7 @@ export const SlotSelect = ({ slotMinutes, onChange }: SlotProps) => (
     <select
       value={slotMinutes}
       onChange={(event) => onChange(Number(event.target.value))}
-      className="h-7 rounded-lg bg-hover px-2 text-fg outline-none focus-visible:ring-2 focus-visible:ring-blue"
+      className="h-7 rounded-lg bg-hover px-2 text-fg outline-none focus-visible:ring-2 focus-visible:ring-purple"
     >
       {slotOptions.map((minutes) => (
         <option key={minutes} value={minutes}>
@@ -68,7 +68,7 @@ export const TicketSites = ({ sites, onChange }: SitesProps) => {
             <button
               type="button"
               aria-label={`Remove ${entry}`}
-              className="flex size-4 items-center justify-center rounded text-muted outline-none hover:text-fg focus-visible:ring-2 focus-visible:ring-blue"
+              className="flex size-4 items-center justify-center rounded text-muted outline-none press hover:text-fg focus-visible:ring-2 focus-visible:ring-purple"
               onClick={() => onChange(sites.filter((s) => s !== entry))}
             >
               <XIcon size={10} weight="bold" />
@@ -128,8 +128,7 @@ const SettingsFields = ({ settings, onChange }: FieldsProps) => (
       <div className="flex flex-col">
         <span className="text-[15px] font-bold text-fg">Ticket sites</span>
         <span className="text-xs text-muted">
-          Tickets are looked for on these sites, such as Jira, GitLab or
-          Confluence, and on their subdomains.
+          Tickets are detected from these sites.
         </span>
       </div>
       <TicketSites

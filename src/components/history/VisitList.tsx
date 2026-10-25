@@ -28,8 +28,9 @@ const readable = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "");
 const asideMotion = (visible: boolean) =>
   cn(
     "transition-[opacity,translate] duration-150 ease-out motion-reduce:transition-none",
-    // Clipped only when hidden: clipping would cut off the resize handles of a shown card.
-    !visible && "pointer-events-none translate-x-2 overflow-clip opacity-0",
+    // Clipped sideways only, so the resize handles of a shown card can stick out above and below.
+    "overflow-x-clip",
+    !visible && "pointer-events-none translate-x-4 opacity-0",
   );
 
 type Placed = { aside: VisitAside; first: number; last: number };
@@ -142,7 +143,7 @@ const VisitList = ({ groups, asides, gap, asidesVisible = true }: Props) => {
               href={visit.url}
               data-visit-time={visit.time}
               style={{ gridColumn: 1, gridRow: ++row }}
-              className="flex items-center gap-3 rounded-lg px-3 py-1.5 outline-none hover:bg-control focus-visible:ring-2 focus-visible:ring-blue"
+              className="flex items-center gap-3 rounded-lg px-3 py-1.5 outline-none hover:bg-control focus-visible:ring-2 focus-visible:ring-purple"
             >
               <Favicon url={visit.url} />
               <span className="flex min-w-0 flex-1 flex-col">
@@ -151,7 +152,7 @@ const VisitList = ({ groups, asides, gap, asidesVisible = true }: Props) => {
                   {readable(visit.url)}
                 </span>
               </span>
-              <time className="shrink-0 text-xs text-amber tabular-nums">
+              <time className="shrink-0 text-xs text-purple tabular-nums">
                 {format(visit.time, "HH:mm:ss")}
               </time>
             </a>
@@ -166,7 +167,7 @@ const VisitList = ({ groups, asides, gap, asidesVisible = true }: Props) => {
           className={cn("py-0.5", asideMotion(asidesVisible))}
           inert={!asidesVisible}
         >
-          {aside.content}
+          <div className="h-full w-68">{aside.content}</div>
         </div>
       ))}
 
@@ -177,7 +178,7 @@ const VisitList = ({ groups, asides, gap, asidesVisible = true }: Props) => {
           className={cn("py-0.5", asideMotion(asidesVisible))}
           inert={!asidesVisible}
         >
-          {gap?.(visits)}
+          <div className="h-full w-68">{gap?.(visits)}</div>
         </div>
       ))}
     </div>

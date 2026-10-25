@@ -60,7 +60,7 @@ const DatePicker = ({ value, max, onChange }: Props) => {
         setOpen(next);
       }}
     >
-      <Popover.Trigger className="flex h-9 items-center gap-2 rounded-lg bg-control px-3 text-fg outline-none transition-colors hover:bg-hover focus-visible:ring-2 focus-visible:ring-blue data-popup-open:bg-hover">
+      <Popover.Trigger className="flex h-9 items-center gap-2 rounded-lg bg-control px-3 text-fg outline-none press hover:bg-hover focus-visible:ring-2 focus-visible:ring-purple data-popup-open:bg-hover">
         <CalendarBlankIcon size={16} weight="bold" className="text-faint" />
         {format(value, "d MMM yyyy")}
       </Popover.Trigger>
@@ -118,9 +118,9 @@ const DatePicker = ({ value, max, onChange }: Props) => {
                       setOpen(false);
                     }}
                     className={cn(
-                      "flex h-8 items-center justify-center rounded-lg tabular-nums outline-none transition-colors hover:bg-hover focus-visible:ring-2 focus-visible:ring-blue disabled:pointer-events-none disabled:opacity-30",
+                      "flex h-8 items-center justify-center rounded-lg tabular-nums outline-none press hover:bg-hover focus-visible:ring-2 focus-visible:ring-purple disabled:pointer-events-none disabled:opacity-30",
                       !isSameMonth(day, month) && "text-faint",
-                      isSameDay(day, max) && !selected && "text-amber",
+                      isSameDay(day, max) && !selected && "text-purple",
                       selected && "bg-purple/15 font-medium text-purple",
                     )}
                   >

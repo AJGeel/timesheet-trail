@@ -14,7 +14,7 @@ type Props = {
 };
 
 const chip =
-  "flex h-7 items-center justify-center rounded-lg bg-control text-xs tabular-nums outline-none transition-colors hover:bg-hover focus-visible:ring-2 focus-visible:ring-blue disabled:pointer-events-none disabled:bg-transparent disabled:text-faint disabled:opacity-50";
+  "flex h-7 items-center justify-center rounded-lg bg-control text-xs tabular-nums outline-none press hover:bg-hover focus-visible:ring-2 focus-visible:ring-purple disabled:pointer-events-none disabled:bg-transparent disabled:text-faint disabled:opacity-50";
 
 const HourStrip = ({ counts, active, onJump }: Props) => (
   <div className="flex items-center gap-1">

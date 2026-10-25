@@ -11,8 +11,8 @@ type Props = ComponentProps<typeof BaseInput> & {
 };
 
 const Input = ({ icon, trailing, className, ...props }: Props) => (
-  <label className="group flex h-9 items-center gap-2 rounded-lg bg-control px-3 transition-colors focus-within:bg-hover focus-within:ring-2 focus-within:ring-blue">
-    <span className="text-faint group-focus-within:text-blue">{icon}</span>
+  <label className="group flex h-9 items-center gap-2 rounded-lg bg-control px-3 transition-colors focus-within:bg-hover focus-within:ring-2 focus-within:ring-purple">
+    <span className="text-faint group-focus-within:text-purple">{icon}</span>
     <BaseInput
       {...props}
       className={cn(

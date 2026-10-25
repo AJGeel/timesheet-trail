@@ -3,7 +3,7 @@
 /*
   Cool purple-grays carry the contrast, with no borders: one page colour, then
   controls a step off it, then hover. The brand colours from public/timesheet-trail.png are used
-  sparingly: purple for what's selected, blue for focus and links, amber for time.
+  sparingly: purple for what's selected, focused or timed.
 */
 @layer base {
   :root {
@@ -14,8 +14,6 @@
     --muted: #5c5f74;
     --faint: #8d90a5;
     --purple: #6c3be8;
-    --blue: #1f5fe0;
-    --amber: #b06a00;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -27,8 +25,6 @@
       --muted: #9194a8;
       --faint: #6b6e83;
       --purple: #a58bff;
-      --blue: #6b9bff;
-      --amber: #f2b24a;
     }
   }
 }
@@ -46,8 +42,6 @@
   --color-muted: var(--muted);
   --color-faint: var(--faint);
   --color-purple: var(--purple);
-  --color-blue: var(--blue);
-  --color-amber: var(--amber);
 }
 
 @theme {
@@ -89,6 +83,36 @@
   }
 
   ::selection {
-    background: color-mix(in oklab, var(--color-blue) 30%, transparent);
+    background: color-mix(in oklab, var(--color-purple) 30%, transparent);
+  }
+}
+
+/*
+  Press feedback for anything clickable: it squishes in quickly and springs back with a
+  slight overshoot. Replaces `transition-colors`, since it animates colours too.
+*/
+@utility press {
+  transition-property:
+    color, background-color, border-color, opacity, filter, box-shadow, scale;
+  /* Only the scale overshoots; an overshooting colour curve flashes. */
+  transition-duration: 120ms, 120ms, 120ms, 120ms, 120ms, 120ms, 180ms;
+  transition-timing-function:
+    ease-out, ease-out, ease-out, ease-out, ease-out, ease-out,
+    cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  &:active:not(:disabled, [aria-disabled="true"]) {
+    scale: 0.94;
+    transition-duration: 120ms, 120ms, 120ms, 120ms, 120ms, 120ms, 70ms;
+    transition-timing-function: ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition-property: color, background-color, border-color, opacity;
+    transition-duration: 120ms;
+    transition-timing-function: ease-out;
+
+    &:active:not(:disabled, [aria-disabled="true"]) {
+      scale: 1;
+    }
   }
 }

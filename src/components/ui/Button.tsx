@@ -12,11 +12,13 @@ const variants = {
 type Props = ComponentProps<typeof BaseButton> & {
   variant?: keyof typeof variants;
   icon?: ReactNode;
+  iconPosition?: "start" | "end";
 };
 
 const Button = ({
   variant = "primary",
   icon,
+  iconPosition = "start",
   className,
   children,
   ...props
@@ -24,13 +26,14 @@ const Button = ({
   <BaseButton
     {...props}
     className={cn(
-      "inline-flex h-8 items-center justify-center gap-2 rounded-lg px-3 font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue disabled:opacity-50",
+      "inline-flex h-8 items-center justify-center gap-2 rounded-lg px-3 font-medium outline-none press focus-visible:ring-2 focus-visible:ring-purple disabled:opacity-50",
       variants[variant],
       className,
     )}
   >
-    {icon}
+    {iconPosition === "start" && icon}
     {children}
+    {iconPosition === "end" && icon}
   </BaseButton>
 );
 

@@ -1,32 +1,16 @@
 import { Dialog } from "@base-ui/react/dialog";
+import { Tooltip } from "@base-ui/react/tooltip";
 import {
-  GlobeIcon,
-  PencilSimpleLineIcon,
-  QuestionIcon,
   SlidersHorizontalIcon,
-  TicketIcon,
   XIcon,
 } from "@phosphor-icons/react";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef } from "react";
 
 import SettingsFields from "@/src/components/history/SettingsFields";
 import Banner from "@/src/components/ui/Banner";
 import ShortcutHint from "@/src/components/ui/ShortcutHint";
 import IconButton from "@/src/components/ui/IconButton";
 import type { SuggestionSettings } from "@/src/services/suggestions/suggestSlots";
-
-const steps: { icon: ReactNode; title: string; text: string }[] = [
-  {
-    icon: <GlobeIcon size={20} weight="duotone" />,
-    title: "Browse as usual",
-    text: "E.g.: Jira, GitLab, GitHub, Confluence.",
-  },
-  {
-    icon: <TicketIcon size={20} weight="duotone" />,
-    title: "See your day",
-    text: "Time slots, matched to tickets.",
-  },
-];
 
 type Props = {
   open: boolean;
@@ -59,16 +43,32 @@ const AboutDialog = ({
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Trigger
-        render={
-          <IconButton
-            label="About Timesheet Trail"
-            className="fixed right-6 bottom-6 z-10 size-10 rounded-full shadow-md"
-          />
-        }
-      >
-        <QuestionIcon size={20} weight="bold" />
-      </Dialog.Trigger>
+      <Tooltip.Provider delay={200}>
+        <Tooltip.Root>
+          <Tooltip.Trigger
+            render={
+              <Dialog.Trigger
+                render={
+                  <IconButton
+                    label="About Timesheet Trail"
+                    title={undefined}
+                    className="fixed right-6 bottom-6 z-10 size-12 rounded-full bg-canvas shadow-lg ring-1 ring-black/5 hover:bg-control"
+                  />
+                }
+              />
+            }
+          >
+            <img src="/icon-128.png" alt="" className="size-7" />
+          </Tooltip.Trigger>
+          <Tooltip.Portal>
+            <Tooltip.Positioner side="left" sideOffset={10}>
+              <Tooltip.Popup className="rounded-lg bg-fg px-2.5 py-1.5 text-xs font-medium text-canvas shadow-lg transition-[opacity,scale] duration-150 ease-out data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0 motion-reduce:transition-none">
+                What is Timesheet Trail? Learn how it works and change settings
+              </Tooltip.Popup>
+            </Tooltip.Positioner>
+          </Tooltip.Portal>
+        </Tooltip.Root>
+      </Tooltip.Provider>
 
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 z-20 bg-black/40 backdrop-blur-sm transition-opacity duration-150 ease-out data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
@@ -80,24 +80,6 @@ const AboutDialog = ({
                 Review the pages you browsed and get suggestions on how to track
                 your hours.
               </Dialog.Description>
-            }
-            footer={
-              <ol className="grid grid-cols-2 gap-2">
-                {steps.map(({ icon, title, text }) => (
-                  <li
-                    key={title}
-                    className="flex items-center gap-2.5 rounded-xl bg-white px-3 py-2 text-fg ring-1 ring-white/20"
-                  >
-                    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
-                      {icon}
-                    </span>
-                    <span className="flex min-w-0 flex-col leading-tight">
-                      <span className="font-semibold">{title}</span>
-                      <span className="text-xs text-muted">{text}</span>
-                    </span>
-                  </li>
-                ))}
-              </ol>
             }
           >
             <Dialog.Close

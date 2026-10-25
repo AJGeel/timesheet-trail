@@ -1,6 +1,8 @@
 import {
   ArrowLineUpIcon,
   ClockCounterClockwiseIcon,
+  EyeIcon,
+  EyeSlashIcon,
   MagnifyingGlassIcon,
 } from "@phosphor-icons/react";
 import {
@@ -31,6 +33,7 @@ import { useDebouncedValue } from "@/src/hooks/useDebouncedValue";
 import { useSuggestionEdits } from "@/src/hooks/useSuggestionEdits";
 import { useSuggestionSettings } from "@/src/hooks/useSuggestionSettings";
 import { useVisits } from "@/src/hooks/useVisits";
+import { cn } from "@/src/utils";
 
 /** Searching spans all time, so only the newest matches are listed. */
 const maxSearchResults = 300;
@@ -272,11 +275,36 @@ export default function History() {
               <Button
                 variant="secondary"
                 aria-pressed={showSuggestions}
-                icon={<img src="/icon-128.png" alt="" className="size-4" />}
+                icon={
+                  showSuggestions ? (
+                    <EyeSlashIcon size={16} weight="bold" />
+                  ) : (
+                    <EyeIcon size={16} weight="bold" />
+                  )
+                }
+                iconPosition="end"
                 onClick={toggleShown}
                 className="h-7 shrink-0"
               >
-                {showSuggestions ? "Hide suggestions" : "Show suggestions"}
+                {/* Both labels share one cell so the button keeps the wider width. */}
+                <span className="grid">
+                  <span
+                    className={cn(
+                      "col-start-1 row-start-1",
+                      !showSuggestions && "invisible",
+                    )}
+                  >
+                    Hide suggestions
+                  </span>
+                  <span
+                    className={cn(
+                      "col-start-1 row-start-1",
+                      showSuggestions && "invisible",
+                    )}
+                  >
+                    Show suggestions
+                  </span>
+                </span>
               </Button>
             </div>
           </div>

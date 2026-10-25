@@ -56,7 +56,7 @@ const DayStrip = ({
             value={day.toISOString()}
             aria-label={format(day, "EEEE d MMMM")}
             className={cn(
-              "flex flex-col items-center rounded-lg bg-control px-2 py-1.5 leading-tight outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue",
+              "flex flex-col items-center rounded-lg bg-control px-2 py-1.5 leading-tight outline-none press focus-visible:ring-2 focus-visible:ring-purple",
               "hover:bg-hover data-pressed:bg-purple/15",
             )}
           >

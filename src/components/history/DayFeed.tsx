@@ -175,11 +175,6 @@ const DayVisits = ({
     );
   };
 
-  const totalMinutes = suggestions.reduce(
-    (sum, { start, end }) => sum + (end - start) / 60_000,
-    0,
-  );
-
   return (
     <div ref={container} className="flex flex-col">
       {/* Collapses to nothing, gap included, when the suggestions are hidden. */}
@@ -191,7 +186,7 @@ const DayVisits = ({
           <div className="pb-3">
             <SuggestionBar
               settings={settings}
-              totalMinutes={totalMinutes}
+              suggestions={suggestions}
               onChange={onSettings}
               onReset={edited && (() => onEdit(day))}
               onOpenSettings={onOpenSettings}

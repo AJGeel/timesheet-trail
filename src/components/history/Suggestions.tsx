@@ -51,7 +51,7 @@ const Handle = ({
       }}
       className={`group/handle absolute inset-x-0 z-10 flex h-3 cursor-ns-resize touch-none items-center justify-center outline-none select-none ${top ? "-top-1.5" : "-bottom-1.5"}`}
     >
-      <span className="h-1 w-8 rounded-full bg-hover opacity-0 transition-opacity group-hover/handle:opacity-100 group-focus-visible/handle:bg-blue group-focus-visible/handle:opacity-100" />
+      <span className="h-1 w-8 rounded-full bg-hover opacity-0 transition-opacity group-hover/handle:opacity-100 group-focus-visible/handle:bg-purple group-focus-visible/handle:opacity-100" />
     </div>
   );
 };
@@ -78,7 +78,7 @@ export const SuggestionCard = ({
         <TicketIcon size={14} weight="fill" className="shrink-0 text-purple" />
         <span className="truncate">{suggestion.label}</span>
       </span>
-      <span className="text-xs text-amber tabular-nums">
+      <span className="text-xs text-purple tabular-nums">
         {format(suggestion.start, "HH:mm")}–{format(suggestion.end, "HH:mm")}
         <span className="ml-2 text-muted">
           {duration((suggestion.end - suggestion.start) / 60_000)}
@@ -88,10 +88,51 @@ export const SuggestionCard = ({
   </Panel>
 );
 
+/** A working day, which the graph is measured against, in minutes. */
+const workday = 8 * 60;
+
+/**
+ * The day's suggestions as a small bar against a working day of 8 hours, one block
+ * each. Time past the 8 hours is lighter, and the bar grows to fit it.
+ */
+const DayGraph = ({ suggestions }: { suggestions: Suggestion[] }) => {
+  const blocks: { key: string; minutes: number; over: boolean }[] = [];
+  let done = 0;
+
+  for (const { id, start, end } of suggestions) {
+    const minutes = (end - start) / 60_000;
+    const within = Math.max(0, Math.min(minutes, workday - done));
+
+    if (within > 0) blocks.push({ key: id, minutes: within, over: false });
+    if (minutes - within > 0) {
+      blocks.push({ key: `${id}-over`, minutes: minutes - within, over: true });
+    }
+    done += minutes;
+  }
+
+  const span = Math.max(workday, done);
+
+  return (
+    <div
+      role="img"
+      aria-label={`${duration(done)} suggested, of a working day of ${duration(workday)}`}
+      className="flex h-1.5 w-20 shrink-0 gap-px overflow-hidden rounded-full bg-hover"
+    >
+      {blocks.map(({ key, minutes, over }) => (
+        <span
+          key={key}
+          style={{ width: `${(minutes / span) * 100}%` }}
+          className={`h-full shrink-0 transition-[width] duration-150 ease-out motion-reduce:transition-none ${over ? "bg-purple/40" : "bg-purple"}`}
+        />
+      ))}
+    </div>
+  );
+};
+
 type BarProps = {
   settings: SuggestionSettings;
-  /** Total of the day's suggestions, in minutes. */
-  totalMinutes: number;
+  /** The day's suggestions, as shown. */
+  suggestions: Suggestion[];
   onChange: (change: Partial<SuggestionSettings>) => void;
   /** Set when the day's suggestions were resized by hand; goes back to the automatic ones. */
   onReset?: () => void;
@@ -101,15 +142,26 @@ type BarProps = {
 /** The slot length, and the way to the settings, above a day's suggestions. */
 export const SuggestionBar = ({
   settings,
-  totalMinutes,
+  suggestions,
   onChange,
   onReset,
   onOpenSettings,
 }: BarProps) => (
   <Panel className="flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2">
-    <span className="font-medium text-fg">
-      Suggested{" "}
-      <span className="text-amber tabular-nums">{duration(totalMinutes)}</span>
+    <span className="flex items-center gap-3 font-medium text-fg">
+      <span>
+        Suggested{" "}
+        <span className="text-purple tabular-nums">
+          {duration(
+            suggestions.reduce(
+              (sum, { start, end }) => sum + (end - start),
+              0,
+            ) / 60_000,
+          )}
+        </span>
+        <span className="text-faint"> / {duration(workday)}</span>
+      </span>
+      <DayGraph suggestions={suggestions} />
     </span>
 
     {onReset && (
@@ -134,7 +186,7 @@ export const SuggestionBar = ({
       icon={<SlidersHorizontalIcon size={14} weight="bold" />}
       onClick={onOpenSettings}
     >
-      Change config
+      Change settings
     </Button>
   </Panel>
 );
