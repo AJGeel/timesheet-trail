@@ -1,7 +1,7 @@
 {
   "name": "timesheet-trail",
   "displayName": "Timesheet Trail",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A better browser history search, for time tracking.",
   "author": "Arthur Geel <ageel@enrise.com>",
   "scripts": {
@@ -28,6 +28,7 @@
     "date-fns": "^4.4.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
+    "react-markdown": "10.1.0",
     "tailwind-merge": "^3.7.0",
     "webextension-polyfill": "^0.12.0"
   },

@@ -1,6 +1,7 @@
 import { Dialog } from "@base-ui/react/dialog";
-import { SlidersHorizontalIcon, XIcon } from "@phosphor-icons/react";
+import { ChatCircleDotsIcon, XIcon } from "@phosphor-icons/react";
 import { useEffect, useRef } from "react";
+import { runtime } from "webextension-polyfill";
 
 import SettingsFields from "@/src/components/history/SettingsFields";
 import Banner from "@/src/components/ui/Banner";
@@ -8,6 +9,9 @@ import ShortcutHint from "@/src/components/ui/ShortcutHint";
 import IconButton from "@/src/components/ui/IconButton";
 import Tooltip from "@/src/components/ui/Tooltip";
 import type { SuggestionSettings } from "@/src/services/suggestions/suggestSlots";
+
+/** Where bugs and ideas go: a form on GitHub, which needs an account but no server of our own. */
+const feedbackUrl = "https://github.com/AJGeel/timesheet-trail/issues/new/choose";
 
 /** What the help buttons say on hover. */
 export const aboutHint =
@@ -20,6 +24,9 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   settings: SuggestionSettings;
   onSettings: (change: Partial<SuggestionSettings>) => void;
+  updateNotices: boolean;
+  onUpdateNotices: (enabled: boolean) => void;
+  onShowUpdates: () => void;
 };
 
 /** A floating help button that opens what the extension is for, in a few lines, and its settings. */
@@ -29,6 +36,9 @@ const AboutDialog = ({
   onOpenChange,
   settings,
   onSettings,
+  updateNotices,
+  onUpdateNotices,
+  onShowUpdates,
 }: Props) => {
   const settingsRef = useRef<HTMLDivElement>(null);
 
@@ -60,13 +70,12 @@ const AboutDialog = ({
 
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 z-20 bg-black/40 backdrop-blur-sm transition-opacity duration-150 ease-out data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
-        <Dialog.Popup className="fixed top-1/2 left-1/2 z-30 flex max-h-[90vh] w-[min(30rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl bg-canvas text-[13px] shadow-xl outline-none transition-[opacity,scale] duration-150 ease-out data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0 motion-reduce:transition-none">
+        <Dialog.Popup className="fixed top-1/2 left-1/2 z-30 flex max-h-[90vh] w-[min(36rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl bg-canvas text-[13px] shadow-xl outline-none transition-[opacity,scale] duration-150 ease-out data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0 motion-reduce:transition-none">
           <Banner
             title={<Dialog.Title>Timesheet Trail</Dialog.Title>}
             description={
               <Dialog.Description>
-                Review the pages you browsed and get suggestions on how to track
-                your hours.
+                View your browser history, get suggestions on how to track your hours.
               </Dialog.Description>
             }
           >
@@ -85,13 +94,27 @@ const AboutDialog = ({
           <div className="flex flex-col gap-5 overflow-y-auto p-6">
             <div ref={settingsRef} className="flex scroll-mt-6 flex-col gap-5">
               <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight text-fg">
-                <SlidersHorizontalIcon size={18} weight="bold" />
                 Settings
               </h3>
-              <SettingsFields settings={settings} onChange={onSettings} />
+              <SettingsFields
+                settings={settings}
+                onChange={onSettings}
+                updateNotices={updateNotices}
+                onUpdateNotices={onUpdateNotices}
+                onShowUpdates={onShowUpdates}
+              />
             </div>
-            <div className="-m-6 mt-6 bg-hover/30 p-6">
-              <ShortcutHint />
+            <a
+              href={feedbackUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-8 w-fit items-center gap-2 rounded-lg bg-control px-3 font-medium text-fg outline-none press hover:bg-hover focus-visible:ring-2 focus-visible:ring-purple"
+            >
+              <ChatCircleDotsIcon size={16} weight="bold" />
+              Report a bug or share feedback
+            </a>
+            <div className="-m-6 mt-6 flex flex-col gap-4 bg-hover/30 p-6">
+              <ShortcutHint keyClassName="bg-canvas" />
             </div>
           </div>
         </Dialog.Popup>

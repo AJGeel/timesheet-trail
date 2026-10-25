@@ -1,0 +1,10 @@
+name: Share feedback or an idea
+description: Something you like, miss or would change.
+labels: [feedback]
+body:
+  - type: textarea
+    id: feedback
+    attributes:
+      label: Your feedback
+    validations:
+      required: true

@@ -7,7 +7,14 @@ import { cn } from "@/src/utils";
 import Kbd from "./Kbd";
 
 /** Tells how to open the history from the keyboard, each key named; nothing if the browser has no shortcut set. */
-const ShortcutHint = ({ className }: { className?: string }) => {
+const ShortcutHint = ({
+  className,
+  keyClassName,
+}: {
+  className?: string;
+  /** Added to each key, e.g. to match what the hint sits on. */
+  keyClassName?: string;
+}) => {
   const keys = useOpenShortcut();
   if (keys.length === 0) return null;
 
@@ -19,7 +26,12 @@ const ShortcutHint = ({ className }: { className?: string }) => {
         {keys.map((key, index) => (
           <Fragment key={key}>
             {index > 0 && <span className="text-faint">+</span>}
-            <Kbd className="h-7 gap-1.5 px-2.5 text-[13px] text-fg">
+            <Kbd
+              className={cn(
+                "h-7 gap-1.5 px-2.5 text-[13px] text-fg",
+                keyClassName,
+              )}
+            >
               {keyName(key) !== key && (
                 <span className="text-base leading-none text-muted">{key}</span>
               )}

@@ -8,8 +8,6 @@ A better browser history for Chrome and Firefox, for time tracking.
 
 Browse your history day by day and hour by hour, and search it by title or URL. Timesheet Trail also turns your visits into time slots and matches each to the ticket (such as `MDR-142`) found in the pages you browsed: Jira, Confluence, GitLab, GitHub and more. Everything runs locally, and your history is never sent anywhere.
 
-Set up like [UpTab](../uptab): Vite, React and TypeScript, built for both browsers from one codebase.
-
 ## Development
 
 You need [Bun](https://bun.sh/).

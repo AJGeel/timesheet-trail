@@ -13,7 +13,15 @@ import {
   isBefore,
   startOfDay,
 } from "date-fns";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import AboutDialog, { aboutHint } from "@/src/components/history/AboutDialog";
 import DayFeed, {
@@ -22,6 +30,7 @@ import DayFeed, {
 } from "@/src/components/history/DayFeed";
 import DayStrip from "@/src/components/history/DayStrip";
 import HourStrip from "@/src/components/history/HourStrip";
+import UpdateNotification from "@/src/components/history/UpdateNotification";
 import VisitList, { type VisitGroup } from "@/src/components/history/VisitList";
 import Button from "@/src/components/ui/Button";
 import DatePicker from "@/src/components/ui/DatePicker";
@@ -33,8 +42,14 @@ import { useDayVisits } from "@/src/hooks/useDayVisits";
 import { useDebouncedValue } from "@/src/hooks/useDebouncedValue";
 import { useSuggestionEdits } from "@/src/hooks/useSuggestionEdits";
 import { useSuggestionSettings } from "@/src/hooks/useSuggestionSettings";
+import { useUpdateNotification } from "@/src/hooks/useUpdateNotification";
 import { useVisits } from "@/src/hooks/useVisits";
 import { cn } from "@/src/utils";
+
+/** The release notes bring react-markdown, so they load when first opened. */
+const WhatsNewDialog = lazy(
+  () => import("@/src/components/history/WhatsNewDialog"),
+);
 
 /** Searching spans all time, so only the newest matches are listed. */
 const maxSearchResults = 300;
@@ -111,6 +126,19 @@ export default function History() {
     () => setDialog({ open: true, section: "settings" }),
     [],
   );
+  const {
+    visible: updated,
+    dismiss: dismissUpdate,
+    enabled: updateNotices,
+    changeEnabled: changeUpdateNotices,
+  } = useUpdateNotification();
+  const [whatsNewOpen, setWhatsNewOpen] = useState(false);
+  // Stays mounted once loaded, so closing it can animate out.
+  const [whatsNewLoaded, setWhatsNewLoaded] = useState(false);
+  const openWhatsNew = useCallback(() => {
+    setWhatsNewLoaded(true);
+    setWhatsNewOpen(true);
+  }, []);
   const {
     edits: suggestionEdits,
     setEdit: setSuggestionEdit,
@@ -362,12 +390,38 @@ export default function History() {
         </>
       )}
 
+      {updated && (
+        <UpdateNotification
+          onOpen={openWhatsNew}
+          onDismiss={dismissUpdate}
+        />
+      )}
+
+      {whatsNewLoaded && (
+        <Suspense>
+          <WhatsNewDialog
+            open={whatsNewOpen}
+            onOpenChange={setWhatsNewOpen}
+            notified={updated}
+            onDismiss={dismissUpdate}
+            updateNotices={updateNotices}
+            onOpenSettings={openSettings}
+          />
+        </Suspense>
+      )}
+
       <AboutDialog
         open={dialog.open}
         section={dialog.section}
         onOpenChange={(open) => setDialog({ open })}
         settings={settings}
         onSettings={changeSettings}
+        updateNotices={updateNotices}
+        onUpdateNotices={changeUpdateNotices}
+        onShowUpdates={() => {
+          setDialog({ open: false });
+          openWhatsNew();
+        }}
       />
     </main>
   );
