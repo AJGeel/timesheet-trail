@@ -1,16 +1,17 @@
 import { Dialog } from "@base-ui/react/dialog";
-import { Tooltip } from "@base-ui/react/tooltip";
-import {
-  SlidersHorizontalIcon,
-  XIcon,
-} from "@phosphor-icons/react";
+import { SlidersHorizontalIcon, XIcon } from "@phosphor-icons/react";
 import { useEffect, useRef } from "react";
 
 import SettingsFields from "@/src/components/history/SettingsFields";
 import Banner from "@/src/components/ui/Banner";
 import ShortcutHint from "@/src/components/ui/ShortcutHint";
 import IconButton from "@/src/components/ui/IconButton";
+import Tooltip from "@/src/components/ui/Tooltip";
 import type { SuggestionSettings } from "@/src/services/suggestions/suggestSlots";
+
+/** What the help buttons say on hover. */
+export const aboutHint =
+  "What is Timesheet Trail? Learn how it works and change settings";
 
 type Props = {
   open: boolean;
@@ -43,32 +44,19 @@ const AboutDialog = ({
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Tooltip.Provider delay={200}>
-        <Tooltip.Root>
-          <Tooltip.Trigger
-            render={
-              <Dialog.Trigger
-                render={
-                  <IconButton
-                    label="About Timesheet Trail"
-                    title={undefined}
-                    className="fixed right-6 bottom-6 z-10 size-12 rounded-full bg-canvas shadow-lg ring-1 ring-black/5 hover:bg-control"
-                  />
-                }
-              />
-            }
-          >
-            <img src="/icon-128.png" alt="" className="size-7" />
-          </Tooltip.Trigger>
-          <Tooltip.Portal>
-            <Tooltip.Positioner side="left" sideOffset={10}>
-              <Tooltip.Popup className="rounded-lg bg-fg px-2.5 py-1.5 text-xs font-medium text-canvas shadow-lg transition-[opacity,scale] duration-150 ease-out data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0 motion-reduce:transition-none">
-                What is Timesheet Trail? Learn how it works and change settings
-              </Tooltip.Popup>
-            </Tooltip.Positioner>
-          </Tooltip.Portal>
-        </Tooltip.Root>
-      </Tooltip.Provider>
+      <Tooltip side="left" content={aboutHint}>
+        <Dialog.Trigger
+          render={
+            <IconButton
+              label="About Timesheet Trail"
+              title={undefined}
+              className="fixed right-6 bottom-6 z-10 size-12 rounded-full bg-canvas shadow-lg ring-1 ring-black/5 hover:bg-control"
+            >
+              <img src="/icon-128.png" alt="" className="size-7" />
+            </IconButton>
+          }
+        />
+      </Tooltip>
 
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 z-20 bg-black/40 backdrop-blur-sm transition-opacity duration-150 ease-out data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />

@@ -3,7 +3,14 @@ import { Fragment, type CSSProperties, type ReactNode } from "react";
 
 import Favicon from "@/src/components/ui/Favicon";
 import { cn } from "@/src/utils";
+import {
+  gaps,
+  place,
+  type VisitAside,
+} from "@/src/services/history/placeAsides";
 import type { Visit } from "@/src/services/history/types";
+
+export type { VisitAside };
 
 export type VisitGroup = {
   key: string;
@@ -13,16 +20,14 @@ export type VisitGroup = {
   anchor?: string;
 };
 
-/** A card shown beside the visits that fall in `[start, end)`. */
-export type VisitAside = {
-  key: string;
-  start: number;
-  end: number;
-  content: ReactNode;
-};
-
 /** The URL without its scheme and `www.`, as it reads best in a list. */
 const readable = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "");
+
+/** The grid row, in the one column the visits take. */
+const rowStyle = (gridRow: number): CSSProperties => ({
+  gridColumn: 1,
+  gridRow,
+});
 
 /** Fades and slides the asides in and out; quick, and none for those who ask for less motion. */
 const asideMotion = (visible: boolean) =>
@@ -33,41 +38,6 @@ const asideMotion = (visible: boolean) =>
     !visible && "pointer-events-none translate-x-4 opacity-0",
   );
 
-type Placed = { aside: VisitAside; first: number; last: number };
-
-/**
- * Where each aside goes: the grid rows of the visits inside it. One without a
- * visit of its own sits at the nearest visit, unless that row is taken.
- */
-const place = (asides: VisitAside[], rows: Map<Visit, number>) => {
-  const placed: Placed[] = [];
-  const taken = new Set<number>();
-  const entries = [...rows];
-
-  for (const aside of asides) {
-    const inside = entries.filter(
-      ([visit]) => visit.time >= aside.start && visit.time < aside.end,
-    );
-    const nearest = () =>
-      [...entries].sort(
-        (a, b) =>
-          Math.abs(a[0].time - aside.start) - Math.abs(b[0].time - aside.start),
-      )[0];
-    const used = inside.length > 0 ? inside : [nearest()].filter(Boolean);
-    if (used.length === 0) continue;
-
-    const first = Math.min(...used.map(([, row]) => row));
-    const last = Math.max(...used.map(([, row]) => row));
-    const span = Array.from({ length: last - first + 1 }, (_, i) => first + i);
-    if (span.some((row) => taken.has(row))) continue;
-
-    span.forEach((row) => taken.add(row));
-    placed.push({ aside, first, last });
-  }
-
-  return placed;
-};
-
 type Props = {
   groups: VisitGroup[];
   /** Shown in a column beside the visits, each level with the visits it covers. */
@@ -76,30 +46,6 @@ type Props = {
   gap?: (visits: Visit[]) => ReactNode;
   /** Whether the asides are shown; hidden, their column closes and the visits take the width. */
   asidesVisible?: boolean;
-};
-
-type Run = { first: number; last: number; visits: Visit[] };
-
-/** The stretches of visits, newest first, whose rows no aside has taken. */
-const gaps = (rows: Map<Visit, number>, placed: Placed[]) => {
-  const covered = (row: number) =>
-    placed.some(({ first, last }) => row >= first && row <= last);
-  const runs: Run[] = [];
-  let run: Run | undefined;
-
-  for (const [visit, row] of rows) {
-    if (covered(row)) {
-      run = undefined;
-    } else if (run) {
-      run.last = row;
-      run.visits.push(visit);
-    } else {
-      run = { first: row, last: row, visits: [visit] };
-      runs.push(run);
-    }
-  }
-
-  return runs;
 };
 
 const VisitList = ({ groups, asides, gap, asidesVisible = true }: Props) => {
@@ -131,7 +77,7 @@ const VisitList = ({ groups, asides, gap, asidesVisible = true }: Props) => {
         <Fragment key={key}>
           <h3
             id={anchor}
-            style={{ gridColumn: 1, gridRow: ++row }}
+            style={rowStyle(++row)}
             className={`scroll-mt-32 px-3 pb-1 text-xs font-medium text-muted ${index > 0 ? "mt-4" : ""}`}
           >
             {label}
@@ -142,8 +88,8 @@ const VisitList = ({ groups, asides, gap, asidesVisible = true }: Props) => {
               key={visit.id}
               href={visit.url}
               data-visit-time={visit.time}
-              style={{ gridColumn: 1, gridRow: ++row }}
-              className="flex items-center gap-3 rounded-lg px-3 py-1.5 outline-none hover:bg-control focus-visible:ring-2 focus-visible:ring-purple"
+              style={rowStyle(++row)}
+              className={`flex items-center gap-3 rounded-lg px-3 py-1.5 outline-none fade hover:bg-control focus-visible:ring-2 focus-visible:ring-purple`}
             >
               <Favicon url={visit.url} />
               <span className="flex min-w-0 flex-1 flex-col">

@@ -73,7 +73,7 @@ export const SuggestionCard = ({
     <Handle edge="end" onResizeStart={onResizeStart} onNudge={onNudge} />
     <Handle edge="start" onResizeStart={onResizeStart} onNudge={onNudge} />
 
-    <div className="sticky top-36 flex min-w-0 flex-1 flex-col">
+    <div className="sticky top-28 flex min-w-0 flex-1 flex-col">
       <span className="flex items-center gap-1.5 font-semibold text-fg">
         <TicketIcon size={14} weight="fill" className="shrink-0 text-purple" />
         <span className="truncate">{suggestion.label}</span>

@@ -176,7 +176,10 @@ const DayVisits = ({
   };
 
   return (
-    <div ref={container} className="flex flex-col">
+    <div
+      ref={container}
+      className="flex animate-[fade-in_400ms_ease-out_backwards] flex-col motion-reduce:animate-none"
+    >
       {/* Collapses to nothing, gap included, when the suggestions are hidden. */}
       <div
         inert={!suggesting}
@@ -271,7 +274,9 @@ const DaySection = memo(
         {!visits || !groups ? (
           <div className="h-24 animate-pulse rounded-xl bg-control" />
         ) : groups.length === 0 ? (
-          <p className="px-3 text-faint">Nothing visited.</p>
+          <p className="animate-[fade-in_400ms_ease-out_backwards] px-3 text-faint motion-reduce:animate-none">
+            Nothing visited.
+          </p>
         ) : (
           <DayVisits
             day={dayKey}
@@ -380,21 +385,29 @@ const DayFeed = ({
     return () => observer.disconnect();
   }, [days, byDay]);
 
+  let waiting = false;
+
   return (
     <div className="flex flex-col gap-8">
-      {days.map((day) => (
-        <DaySection
-          key={day.getTime()}
-          dayKey={day.getTime()}
-          visits={byDay.get(day.getTime())}
-          showSuggestions={showSuggestions}
-          settings={suggestionSettings}
-          onSettings={onSuggestionSettings}
-          edited={suggestionEdits[day.getTime()]}
-          onEdit={onSuggestionEdit}
-          onOpenSettings={onOpenSettings}
-        />
-      ))}
+      {days.map((day) => {
+        // A day waits for the newer ones above it, so a late one can't push what you're reading.
+        const visits = byDay.get(day.getTime());
+        if (!visits) waiting = true;
+
+        return (
+          <DaySection
+            key={day.getTime()}
+            dayKey={day.getTime()}
+            visits={waiting ? undefined : visits}
+            showSuggestions={showSuggestions}
+            settings={suggestionSettings}
+            onSettings={onSuggestionSettings}
+            edited={suggestionEdits[day.getTime()]}
+            onEdit={onSuggestionEdit}
+            onOpenSettings={onOpenSettings}
+          />
+        );
+      })}
 
       <div ref={endRef} className="h-px" />
     </div>

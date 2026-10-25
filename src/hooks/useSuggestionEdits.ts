@@ -11,10 +11,12 @@ export type SuggestionEdits = Record<string, Suggestion[]>;
 /** The days whose suggestions were resized by hand, kept in `storage.local`. */
 export const useSuggestionEdits = () => {
   const [edits, setEdits] = useState<SuggestionEdits>({});
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     storage.local.get(storageKey).then((items) => {
       setEdits((items[storageKey] as SuggestionEdits | undefined) ?? {});
+      setLoaded(true);
     });
   }, []);
 
@@ -28,5 +30,5 @@ export const useSuggestionEdits = () => {
     });
   }, []);
 
-  return { edits, setEdit };
+  return { edits, setEdit, loaded };
 };

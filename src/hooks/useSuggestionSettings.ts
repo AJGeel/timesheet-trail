@@ -9,10 +9,14 @@ import {
 const settingsKey = "suggestionSettings";
 const shownKey = "suggestionsShown";
 
-/** The suggestions' settings and whether they are shown, kept in `storage.local`. */
+/**
+ * The suggestions' settings and whether they are shown, kept in `storage.local`.
+ * Until `loaded`, the values are defaults; showing them would flash the wrong state.
+ */
 export const useSuggestionSettings = () => {
   const [settings, setSettings] = useState(defaultSuggestionSettings);
   const [shown, setShown] = useState(true);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     storage.local.get([settingsKey, shownKey]).then((items) => {
@@ -20,6 +24,7 @@ export const useSuggestionSettings = () => {
         Partial<SuggestionSettings> | undefined;
       setSettings({ ...defaultSuggestionSettings, ...saved });
       if (typeof items[shownKey] === "boolean") setShown(items[shownKey]);
+      setLoaded(true);
     });
   }, []);
 
@@ -38,5 +43,5 @@ export const useSuggestionSettings = () => {
     });
   }, []);
 
-  return { settings, update, shown, toggleShown };
+  return { settings, update, shown, toggleShown, loaded };
 };

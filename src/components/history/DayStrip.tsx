@@ -4,6 +4,7 @@ import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { addDays, format, isSameDay, isToday, isYesterday } from "date-fns";
 
 import IconButton from "@/src/components/ui/IconButton";
+import { scrollStripClass, useScrollStrip } from "@/src/hooks/useScrollStrip";
 import { cn } from "@/src/utils";
 
 const shownDays = 7;
@@ -34,6 +35,8 @@ const DayStrip = ({
   canStepForward,
 }: Props) => {
   const days = Array.from({ length: shownDays }, (_, i) => addDays(newest, -i));
+  const selectedIndex = days.findIndex((day) => isSameDay(day, selected));
+  const strip = useScrollStrip(selectedIndex === -1 ? null : selectedIndex);
 
   return (
     <div className="flex items-center gap-3">
@@ -48,7 +51,9 @@ const DayStrip = ({
       <ToggleGroup
         value={[selected.toISOString()]}
         onValueChange={([next]) => next && onSelect(new Date(next))}
-        className="grid flex-1 grid-cols-7 gap-1.5"
+        ref={strip.ref}
+        style={strip.style}
+        className={cn(scrollStripClass, "min-w-0 flex-1 gap-1.5")}
       >
         {days.map((day) => (
           <Toggle
@@ -56,7 +61,7 @@ const DayStrip = ({
             value={day.toISOString()}
             aria-label={format(day, "EEEE d MMMM")}
             className={cn(
-              "flex flex-col items-center rounded-lg bg-control px-2 py-1.5 leading-tight outline-none press focus-visible:ring-2 focus-visible:ring-purple",
+              "flex min-w-22 flex-1 shrink-0 flex-col items-center rounded-lg bg-control px-2 py-1.5 leading-tight outline-none press focus-visible:ring-2 focus-visible:ring-purple",
               "hover:bg-hover data-pressed:bg-purple/15",
             )}
           >

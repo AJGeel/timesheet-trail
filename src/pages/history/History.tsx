@@ -15,7 +15,7 @@ import {
 } from "date-fns";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import AboutDialog from "@/src/components/history/AboutDialog";
+import AboutDialog, { aboutHint } from "@/src/components/history/AboutDialog";
 import DayFeed, {
   dayAnchor,
   hourAnchor,
@@ -25,6 +25,7 @@ import HourStrip from "@/src/components/history/HourStrip";
 import VisitList, { type VisitGroup } from "@/src/components/history/VisitList";
 import Button from "@/src/components/ui/Button";
 import DatePicker from "@/src/components/ui/DatePicker";
+import Tooltip from "@/src/components/ui/Tooltip";
 import Panel from "@/src/components/ui/Panel";
 import Input from "@/src/components/ui/Input";
 import Kbd from "@/src/components/ui/Kbd";
@@ -100,6 +101,7 @@ export default function History() {
     update: changeSettings,
     shown: showSuggestions,
     toggleShown,
+    loaded: settingsLoaded,
   } = useSuggestionSettings();
 
   const [dialog, setDialog] = useState<{ open: boolean; section?: "settings" }>(
@@ -109,8 +111,11 @@ export default function History() {
     () => setDialog({ open: true, section: "settings" }),
     [],
   );
-  const { edits: suggestionEdits, setEdit: setSuggestionEdit } =
-    useSuggestionEdits();
+  const {
+    edits: suggestionEdits,
+    setEdit: setSuggestionEdit,
+    loaded: editsLoaded,
+  } = useSuggestionEdits();
 
   // The feed shows `count` days from `feedStart` back; the strip follows the day in view.
   const [feedStart, setFeedStart] = useState(today);
@@ -223,13 +228,22 @@ export default function History() {
     }
   };
 
+  // Rendered from the saved state, not the defaults, so nothing visibly shifts at startup.
+  if (!settingsLoaded || !editsLoaded) return null;
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-4 px-6 py-5">
       <header className="flex items-center gap-8">
-        <div className="flex items-center gap-1">
-          <img src="/icon-128.png" alt="" className="size-6" />
-          <h1 className="text-base font-bold text-fg">Timesheet Trail</h1>
-        </div>
+        <Tooltip side="bottom" content={aboutHint}>
+          <button
+            type="button"
+            onClick={() => setDialog({ open: true })}
+            className="-mx-2 flex items-center gap-1 rounded-lg px-2 py-1 outline-none press hover:bg-control focus-visible:ring-2 focus-visible:ring-purple"
+          >
+            <img src="/icon-128.png" alt="" className="size-6" />
+            <h1 className="text-base font-bold text-fg">Timesheet Trail</h1>
+          </button>
+        </Tooltip>
 
         <div className="flex-1">
           <Input
@@ -266,46 +280,53 @@ export default function History() {
             <div className="flex items-center gap-3">
               <div className="min-w-0 flex-1">
                 <HourStrip
+                  loaded={byDay.has(activeDay.getTime())}
                   counts={hourCounts}
                   active={activeHour}
                   onJump={jumpToHour}
                 />
               </div>
 
-              <Button
-                variant="secondary"
-                aria-pressed={showSuggestions}
-                icon={
-                  showSuggestions ? (
-                    <EyeSlashIcon size={16} weight="bold" />
-                  ) : (
-                    <EyeIcon size={16} weight="bold" />
-                  )
-                }
-                iconPosition="end"
-                onClick={toggleShown}
-                className="h-7 shrink-0"
+              <Tooltip
+                side="bottom"
+                disabled={showSuggestions}
+                content="Suggestions turn your visits into time slots, each matched to a ticket found in the pages you browsed."
               >
-                {/* Both labels share one cell so the button keeps the wider width. */}
-                <span className="grid">
-                  <span
-                    className={cn(
-                      "col-start-1 row-start-1",
-                      !showSuggestions && "invisible",
-                    )}
-                  >
-                    Hide suggestions
+                <Button
+                  variant="secondary"
+                  aria-pressed={showSuggestions}
+                  icon={
+                    showSuggestions ? (
+                      <EyeSlashIcon size={16} weight="bold" />
+                    ) : (
+                      <EyeIcon size={16} weight="bold" />
+                    )
+                  }
+                  iconPosition="end"
+                  onClick={toggleShown}
+                  className="h-7 shrink-0"
+                >
+                  {/* Both labels share one cell so the button keeps the wider width. */}
+                  <span className="grid">
+                    <span
+                      className={cn(
+                        "col-start-1 row-start-1",
+                        !showSuggestions && "invisible",
+                      )}
+                    >
+                      Hide suggestions
+                    </span>
+                    <span
+                      className={cn(
+                        "col-start-1 row-start-1",
+                        showSuggestions && "invisible",
+                      )}
+                    >
+                      Show suggestions
+                    </span>
                   </span>
-                  <span
-                    className={cn(
-                      "col-start-1 row-start-1",
-                      showSuggestions && "invisible",
-                    )}
-                  >
-                    Show suggestions
-                  </span>
-                </span>
-              </Button>
+                </Button>
+              </Tooltip>
             </div>
           </div>
 

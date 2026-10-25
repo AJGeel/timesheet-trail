@@ -57,6 +57,13 @@
   }
 }
 
+/* Things that arrive after the page, such as loaded visits and what is computed from them, fade in without moving. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
 @layer base {
   html {
     color-scheme: light dark;
@@ -84,6 +91,17 @@
 
   ::selection {
     background: color-mix(in oklab, var(--color-purple) 30%, transparent);
+  }
+}
+
+/* The colour fade for hoverable things that don't react to presses, such as rows. */
+@utility fade {
+  transition-property: color, background-color, border-color, opacity;
+  transition-duration: 120ms;
+  transition-timing-function: ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition-duration: 0s;
   }
 }
 
