@@ -391,10 +391,7 @@ export default function History() {
       )}
 
       {updated && (
-        <UpdateNotification
-          onOpen={openWhatsNew}
-          onDismiss={dismissUpdate}
-        />
+        <UpdateNotification onOpen={openWhatsNew} onDismiss={dismissUpdate} />
       )}
 
       {whatsNewLoaded && (

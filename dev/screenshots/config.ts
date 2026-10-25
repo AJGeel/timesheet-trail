@@ -36,28 +36,30 @@ export const screenshots: Screenshots = {
     accent: "#6c3be8",
     ink: "#15161c",
   },
-  scenes: scenes.map(({ id, headline, suggestions, dark, backdrop, setup }) => ({
-    id,
-    headline,
-    backdrop: `dev/screenshots/backdrops/${backdrop}.svg`,
-    prepare: async ({ worker }) => {
-      await worker.evaluate(
-        (shown) =>
-          (
-            globalThis as unknown as {
-              chrome: {
-                storage: { local: { set: (items: object) => Promise<void> } };
-              };
-            }
-          ).chrome.storage.local.set({ suggestionsShown: shown }),
-        suggestions,
-      );
-    },
-    setup: async (page, stage) => {
-      await stage("setting the theme", () =>
-        page.emulateMedia({ colorScheme: dark ? "dark" : "light" }),
-      );
-      await setup?.(page);
-    },
-  })),
+  scenes: scenes.map(
+    ({ id, headline, suggestions, dark, backdrop, setup }) => ({
+      id,
+      headline,
+      backdrop: `dev/screenshots/backdrops/${backdrop}.svg`,
+      prepare: async ({ worker }) => {
+        await worker.evaluate(
+          (shown) =>
+            (
+              globalThis as unknown as {
+                chrome: {
+                  storage: { local: { set: (items: object) => Promise<void> } };
+                };
+              }
+            ).chrome.storage.local.set({ suggestionsShown: shown }),
+          suggestions,
+        );
+      },
+      setup: async (page, stage) => {
+        await stage("setting the theme", () =>
+          page.emulateMedia({ colorScheme: dark ? "dark" : "light" }),
+        );
+        await setup?.(page);
+      },
+    }),
+  ),
 };

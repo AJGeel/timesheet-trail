@@ -15,10 +15,24 @@ bun store:submit firefox    # or only one store: chrome / firefox
 
 1. Bump `version` in `package.json`.
 2. Add the release to `CHANGELOG.md` as `## [V<version>] — <date>`.
-3. Commit, then run `bun store:submit --dry-run`.
-4. Run `bun store:submit`.
-5. Check `bun store:status` in the following days.
-6. Once merged, on an up-to-date `main`, run `bun tag-release` (`--dry-run` previews it).
+3. Commit and run `bun store:submit --dry-run` to check the build.
+4. Merge to `main`.
+5. On an up-to-date `main`, run `bun tag-release` (`--dry-run` previews it). This tags the version, publishes the GitHub release and, through GitHub Actions, submits to both stores (see below).
+6. Check `bun store:status` in the following days.
+
+To submit by hand instead, run `bun store:submit` after step 3, and `bun tag-release` once merged.
+
+## Automated submission
+
+Pushing a `V*` tag runs [`.github/workflows/submit.yml`](../.github/workflows/submit.yml). It checks that the tag matches `version`, runs the type check and tests, then runs `bun store:submit --yes`. Like a manual run, it stops if a store already has that version.
+
+One-time setup, in the GitHub repo under **Settings > Environments**:
+
+1. Create an environment named `stores`.
+2. Add the values from `.env` as environment **secrets**: `CHROME_PUBLISHER_ID`, `CHROME_EXTENSION_ID`, `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN`, `FIREFOX_EXTENSION_ID`, `FIREFOX_JWT_ISSUER` and `FIREFOX_JWT_SECRET`.
+3. Optional: under **Required reviewers**, add yourself. Each submission then waits for your approval before anything is uploaded.
+
+The Chrome refresh token only works while the Google OAuth app is **published** (not in Testing), and it stays valid as long as it's used. If a run fails with an authorization error, run `bun store:auth` and update `CHROME_REFRESH_TOKEN`.
 
 ## First submission (manual)
 

@@ -1,7 +1,12 @@
 import { Input as BaseInput } from "@base-ui/react/input";
 import { Select } from "@base-ui/react/select";
 import { Switch } from "@base-ui/react/switch";
-import { CaretDownIcon, CheckIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
+import {
+  CaretDownIcon,
+  CheckIcon,
+  PlusIcon,
+  XIcon,
+} from "@phosphor-icons/react";
 import { useState, type FormEvent } from "react";
 
 import Button from "@/src/components/ui/Button";

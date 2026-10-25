@@ -10,7 +10,7 @@ type Props = {
 /** A round bell above the help button, telling there is news. Dismissing it is revealed on hover. */
 const UpdateNotification = ({ onOpen, onDismiss }: Props) => (
   <div className="group fixed right-6 bottom-22 z-10 animate-[fade-in_300ms_ease-out_both] motion-reduce:animate-none">
-    <Tooltip side="left" content="What&apos;s new in this version">
+    <Tooltip side="left" content="What's new in this version">
       <button
         type="button"
         onClick={onOpen}

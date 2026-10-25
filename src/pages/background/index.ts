@@ -1,4 +1,9 @@
-import { commands, contextMenus, runtime, storage } from "webextension-polyfill";
+import {
+  commands,
+  contextMenus,
+  runtime,
+  storage,
+} from "webextension-polyfill";
 
 import { openHistory } from "@/src/services/history/openHistory";
 

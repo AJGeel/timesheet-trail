@@ -8,9 +8,7 @@ import { openHistory } from "@/src/services/history/openHistory";
 export default function Popup() {
   return (
     <div className="flex w-80 flex-col">
-      <Banner
-        title="Timesheet Trail"
-      />
+      <Banner title="Timesheet Trail" />
 
       <div className="flex flex-col gap-4 p-4">
         <Button

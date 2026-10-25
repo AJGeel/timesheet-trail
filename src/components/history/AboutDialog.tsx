@@ -11,7 +11,8 @@ import Tooltip from "@/src/components/ui/Tooltip";
 import type { SuggestionSettings } from "@/src/services/suggestions/suggestSlots";
 
 /** Where bugs and ideas go: a form on GitHub, which needs an account but no server of our own. */
-const feedbackUrl = "https://github.com/AJGeel/timesheet-trail/issues/new/choose";
+const feedbackUrl =
+  "https://github.com/AJGeel/timesheet-trail/issues/new/choose";
 
 /** What the help buttons say on hover. */
 export const aboutHint =
@@ -75,7 +76,8 @@ const AboutDialog = ({
             title={<Dialog.Title>Timesheet Trail</Dialog.Title>}
             description={
               <Dialog.Description>
-                View your browser history, get suggestions on how to track your hours.
+                View your browser history, get suggestions on how to track your
+                hours.
               </Dialog.Description>
             }
           >
